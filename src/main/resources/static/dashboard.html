@@ -40,6 +40,15 @@
             </div>
 
             <div class="dashboard-actions">
+                <div class="card card-glow action-card checkin-card" id="checkInCard">
+                    <span class="action-icon">🪙</span>
+                    <h3>Daily Check-in</h3>
+                    <p id="checkInStatus">Claim your daily 30 coins reward!</p>
+                    <div class="checkin-controls">
+                        <button id="claimBtn" class="btn btn-primary btn-lg btn-shimmer">Claim 30 Coins</button>
+                        <div id="checkInTimer" class="timer-display hidden">Next claim in: <span>00:00:00</span></div>
+                    </div>
+                </div>
 
                 <a href="events.html" class="card card-glow action-card"
                     style="border-color:var(--accent); background:rgba(255,107,0,0.05);">
@@ -58,6 +67,9 @@
 
 
         </div>
+        
+        <!-- Coin Animation Layer -->
+        <div id="coinContainer" class="coin-container"></div>
     </main>
 
     <script src="js/api.js"></script>

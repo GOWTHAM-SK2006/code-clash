@@ -14,4 +14,5 @@ public class DashboardDto {
     private Integer problemsSolved;
     private Long userRank;
     private Long totalUsers;
+    private String checkInTimer;
 }

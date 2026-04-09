@@ -62,7 +62,24 @@ public class UserService {
                 .problemsSolved(solvedCount)
                 .userRank(rank)
                 .totalUsers((long) ranked.size())
+                .checkInTimer(calculateCheckInTimer(user))
                 .build();
+    }
+
+    private String calculateCheckInTimer(User user) {
+        if (user.getLastCheckIn() == null) return "READY";
+        
+        LocalDateTime now = LocalDateTime.now();
+        Duration duration = Duration.between(user.getLastCheckIn(), now);
+        
+        if (duration.toHours() >= 12) return "READY";
+        
+        long secondsLeft = (12 * 3600) - duration.getSeconds();
+        long hours = secondsLeft / 3600;
+        long mins = (secondsLeft % 3600) / 60;
+        long secs = secondsLeft % 60;
+        
+        return String.format("%02d:%02d:%02d", hours, mins, secs);
     }
 
     @Transactional
