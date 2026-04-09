@@ -5,63 +5,761 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Friends — CodeClash</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* ═══════════════════════════════════════════════
+           FRIENDS PAGE — GAMING PLATFORM UI
+           ═══════════════════════════════════════════════ */
+
+        .friends-page {
+            background:
+                radial-gradient(1200px 600px at 50% -8%, rgba(255, 107, 0, 0.08), transparent 60%),
+                radial-gradient(800px 400px at 10% 80%, rgba(138, 43, 226, 0.06), transparent 65%),
+                radial-gradient(600px 300px at 90% 70%, rgba(0, 195, 255, 0.05), transparent 60%),
+                linear-gradient(180deg, #07080d 0%, #0a0b12 50%, #07080d 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        /* — Animated background particles — */
+        .friends-bg-fx {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .friends-bg-fx .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            animation: orbFloat 12s ease-in-out infinite alternate;
+        }
+
+        .friends-bg-fx .orb-1 {
+            width: 500px; height: 500px;
+            background: rgba(255, 107, 0, 0.07);
+            top: -10%; right: -5%;
+            animation-duration: 14s;
+        }
+
+        .friends-bg-fx .orb-2 {
+            width: 400px; height: 400px;
+            background: rgba(138, 43, 226, 0.06);
+            bottom: -5%; left: -5%;
+            animation-duration: 18s;
+            animation-delay: -4s;
+        }
+
+        .friends-bg-fx .orb-3 {
+            width: 300px; height: 300px;
+            background: rgba(0, 195, 255, 0.05);
+            top: 40%; right: 20%;
+            animation-duration: 16s;
+            animation-delay: -8s;
+        }
+
+        @keyframes orbFloat {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, -40px) scale(1.1); }
+            100% { transform: translate(-20px, 20px) scale(0.95); }
+        }
+
+        /* — Page header — */
+        .friends-hero {
+            text-align: center;
+            padding: 3rem 0 2.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .friends-hero-title {
+            font-size: 3.2rem;
+            font-weight: 900;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 0.6rem;
+            background: linear-gradient(135deg, #fff 0%, #FF6B00 50%, #ff9d4d 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 30px rgba(255, 107, 0, 0.2));
+        }
+
+        .friends-hero-sub {
+            font-size: 1.05rem;
+            color: rgba(255, 255, 255, 0.45);
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+        }
+
+        /* — Stats ribbon — */
+        .friends-stats-ribbon {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        .friends-stat-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 100px;
+            padding: 0.6rem 1.4rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .friends-stat-pill:hover {
+            border-color: rgba(255, 107, 0, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .friends-stat-pill .stat-icon {
+            font-size: 1.3rem;
+        }
+
+        .friends-stat-pill .stat-num {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #FF6B00;
+        }
+
+        .friends-stat-pill .stat-txt {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* — Add friend button — */
+        .btn-add-friend {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #FF6B00, #FF8C32);
+            color: #fff;
+            font-weight: 800;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            padding: 0.75rem 1.8rem;
+            border-radius: 100px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 20px rgba(255, 107, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-add-friend::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .btn-add-friend:hover::before {
+            transform: translateX(100%);
+        }
+
+        .btn-add-friend:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 30px rgba(255, 107, 0, 0.4);
+        }
+
+        .btn-add-friend:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: none;
+            cursor: not-allowed;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-add-friend:disabled:hover {
+            transform: none;
+        }
+
+        /* — Tab navigation — */
+        .friends-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 0.35rem;
+            margin-bottom: 2rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .friends-tab {
+            flex: 1;
+            padding: 0.7rem 1rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.35);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .friends-tab:hover {
+            color: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .friends-tab.active {
+            color: #FF6B00;
+            background: rgba(255, 107, 0, 0.1);
+            border: 1px solid rgba(255, 107, 0, 0.2);
+            box-shadow: 0 0 20px rgba(255, 107, 0, 0.08);
+        }
+
+        .friends-tab .tab-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 100px;
+            background: rgba(255, 107, 0, 0.2);
+            color: #FF6B00;
+            font-size: 0.6rem;
+            font-weight: 900;
+            margin-left: 0.4rem;
+            padding: 0 4px;
+        }
+
+        /* — Tab panels — */
+        .friends-panel {
+            display: none;
+            animation: panelFadeIn 0.4s ease;
+        }
+
+        .friends-panel.active {
+            display: block;
+        }
+
+        @keyframes panelFadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* — Friend cards grid — */
+        .friends-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .gamer-card {
+            background: linear-gradient(135deg, rgba(22, 24, 35, 0.8), rgba(15, 16, 22, 0.9));
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        .gamer-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 107, 0, 0.5), transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .gamer-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 107, 0, 0.25);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 107, 0, 0.05);
+        }
+
+        .gamer-card:hover::before {
+            opacity: 1;
+        }
+
+        .gamer-card-inner {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .gamer-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1.3rem;
+            color: #fff;
+            background: linear-gradient(135deg, #FF6B00, #e05500);
+            box-shadow: 0 4px 16px rgba(255, 107, 0, 0.3);
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .gamer-avatar .online-dot {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #00E676;
+            border: 3px solid #12131a;
+            box-shadow: 0 0 8px rgba(0, 230, 118, 0.4);
+        }
+
+        .gamer-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .gamer-name {
+            font-weight: 800;
+            font-size: 1.05rem;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .gamer-handle {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.35);
+            font-weight: 500;
+        }
+
+        .gamer-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            margin-top: 0.3rem;
+            background: rgba(255, 107, 0, 0.1);
+            color: #FF6B00;
+            border: 1px solid rgba(255, 107, 0, 0.15);
+        }
+
+        /* — Request rows — */
+        .request-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.1rem 1.5rem;
+            background: linear-gradient(135deg, rgba(22, 24, 35, 0.7), rgba(15, 16, 22, 0.8));
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+        }
+
+        .request-row:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.04);
+            transform: translateX(4px);
+        }
+
+        .request-row .req-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .request-row .req-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #fff;
+        }
+
+        .request-row .req-meta {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 0.15rem;
+        }
+
+        .request-row .req-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        /* — Action buttons in cards — */
+        .btn-gamer {
+            padding: 0.5rem 1.2rem;
+            border-radius: 10px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-gamer-accept {
+            background: linear-gradient(135deg, #00E676, #00C853);
+            color: #000;
+            box-shadow: 0 4px 12px rgba(0, 230, 118, 0.25);
+        }
+
+        .btn-gamer-accept:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 230, 118, 0.35);
+        }
+
+        .btn-gamer-pending {
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            cursor: default;
+        }
+
+        .btn-gamer-add {
+            background: rgba(255, 107, 0, 0.12);
+            color: #FF6B00;
+            border: 1px solid rgba(255, 107, 0, 0.2);
+        }
+
+        .btn-gamer-add:hover {
+            background: rgba(255, 107, 0, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(255, 107, 0, 0.2);
+        }
+
+        .btn-gamer-friends {
+            background: rgba(0, 230, 118, 0.08);
+            color: #00E676;
+            border: 1px solid rgba(0, 230, 118, 0.15);
+            cursor: default;
+        }
+
+        /* — All users search panel — */
+        .users-search-panel {
+            background: linear-gradient(180deg, rgba(18, 19, 28, 0.95), rgba(12, 13, 20, 0.98));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .users-search-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 107, 0, 0.4), transparent);
+        }
+
+        .users-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.2rem;
+        }
+
+        .users-panel-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .users-panel-title .glow-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #FF6B00;
+            box-shadow: 0 0 12px rgba(255, 107, 0, 0.5);
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.5; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+
+        .btn-close-panel {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-close-panel:hover {
+            background: rgba(255, 77, 77, 0.15);
+            border-color: rgba(255, 77, 77, 0.3);
+            color: #FF4D4D;
+            transform: rotate(90deg);
+        }
+
+        .search-input-wrap {
+            position: relative;
+        }
+
+        .search-input-wrap .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 1rem;
+            pointer-events: none;
+            transition: color 0.3s ease;
+        }
+
+        .search-input-gaming {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 0.9rem 1rem 0.9rem 2.8rem;
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input-gaming::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        .search-input-gaming:focus {
+            border-color: rgba(255, 107, 0, 0.4);
+            box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.08), 0 4px 20px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .search-input-gaming:focus ~ .search-icon {
+            color: #FF6B00;
+        }
+
+        .users-results {
+            margin-top: 1rem;
+            max-height: 360px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .users-results::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .users-results::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .users-results::-webkit-scrollbar-thumb {
+            background: rgba(255, 107, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        /* — Empty state — */
+        .empty-gaming {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        .empty-gaming .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 0.75rem;
+            opacity: 0.6;
+        }
+
+        .empty-gaming .empty-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .empty-gaming .empty-hint {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* — Entrance animations — */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .anim-slide-up {
+            animation: slideUp 0.5s ease both;
+        }
+
+        .anim-slide-left {
+            animation: slideInLeft 0.4s ease both;
+        }
+
+        /* — Responsive — */
+        @media (max-width: 640px) {
+            .friends-hero-title { font-size: 2.2rem; }
+            .friends-stats-ribbon { gap: 0.75rem; }
+            .friends-stat-pill { padding: 0.5rem 1rem; }
+            .friends-grid { grid-template-columns: 1fr; }
+            .friends-tabs { flex-wrap: wrap; gap: 0.3rem; }
+        }
+    </style>
 </head>
 
-<body>
-    <div class="bg-glow-container">
-        <div class="bg-glow-1"></div>
-        <div class="bg-glow-2"></div>
+<body class="friends-page">
+    <!-- Background FX -->
+    <div class="friends-bg-fx">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
     </div>
 
     <nav class="navbar" id="navbar"></nav>
 
-    <main class="page-content">
-        <div class="container friends-container">
-            <div class="page-header friends-header">
-                <div>
-                    <h1>👥 Friends</h1>
-                    <p>Build your coding network and connect with others.</p>
+    <main class="page-content" style="position: relative; z-index: 1;">
+        <div class="container" style="max-width: 900px;">
+
+            <!-- Hero Header -->
+            <div class="friends-hero">
+                <h1 class="friends-hero-title">⚔️ Squad Hub</h1>
+                <p class="friends-hero-sub">Build your crew. Dominate the arena together.</p>
+
+                <!-- Stats Ribbon -->
+                <div class="friends-stats-ribbon">
+                    <div class="friends-stat-pill">
+                        <span class="stat-icon">👥</span>
+                        <span class="stat-num" id="friendCountStat">0</span>
+                        <span class="stat-txt">Friends</span>
+                    </div>
+                    <div class="friends-stat-pill">
+                        <span class="stat-icon">📩</span>
+                        <span class="stat-num" id="receivedCountStat">0</span>
+                        <span class="stat-txt">Incoming</span>
+                    </div>
+                    <div class="friends-stat-pill">
+                        <span class="stat-icon">📤</span>
+                        <span class="stat-num" id="sentCountStat">0</span>
+                        <span class="stat-txt">Pending</span>
+                    </div>
                 </div>
-                <button id="openAddFriendBtn" class="btn btn-primary btn-lg" type="button">Add Friend</button>
+
+                <button id="openAddFriendBtn" class="btn-add-friend" type="button">
+                    <span>＋</span> Add Friend
+                </button>
             </div>
 
+            <!-- Alert -->
             <div id="friendsAlert" class="alert" style="display:none;"></div>
 
-            <section class="friends-section card">
-                <div class="friends-section-title">Your Friends</div>
-                <div id="friendsList" class="friends-list-grid">
-                    <div class="friends-placeholder">Loading friends...</div>
+            <!-- Add Friend Search Panel (hidden by default) -->
+            <section id="allUsersSection" class="users-search-panel" style="display:none;">
+                <div class="users-panel-header">
+                    <div class="users-panel-title">
+                        <span class="glow-dot"></span>
+                        Find Players
+                    </div>
+                    <button id="closeAddFriendBtn" class="btn-close-panel" type="button">✕</button>
+                </div>
+                <div class="search-input-wrap">
+                    <input id="allUsersSearch" class="search-input-gaming" type="text" placeholder="Search by name or username...">
+                    <span class="search-icon">🔍</span>
+                </div>
+                <div id="allUsers" class="users-results">
+                    <div class="empty-gaming">
+                        <div class="empty-icon">🔎</div>
+                        <div class="empty-text">Search to discover players</div>
+                        <div class="empty-hint">Type a name or username above</div>
+                    </div>
                 </div>
             </section>
 
-            <section class="friends-section card">
-                <div class="friends-section-title">Received Requests</div>
-                <div id="receivedRequests" class="request-list">
-                    <div class="friends-placeholder">Loading received requests...</div>
-                </div>
-            </section>
+            <!-- Tab Navigation -->
+            <div class="friends-tabs">
+                <button class="friends-tab active" data-tab="squad">
+                    ⚔️ Squad <span class="tab-count" id="tabCountSquad">0</span>
+                </button>
+                <button class="friends-tab" data-tab="received">
+                    📩 Incoming <span class="tab-count" id="tabCountReceived">0</span>
+                </button>
+                <button class="friends-tab" data-tab="sent">
+                    📤 Sent <span class="tab-count" id="tabCountSent">0</span>
+                </button>
+            </div>
 
-            <section class="friends-section card">
-                <div class="friends-section-title">Sent Requests</div>
-                <div id="sentRequests" class="request-list">
-                    <div class="friends-placeholder">Loading sent requests...</div>
+            <!-- Tab Panels -->
+            <div class="friends-panel active" id="panel-squad">
+                <div id="friendsList" class="friends-grid">
+                    <div class="empty-gaming">
+                        <div class="empty-icon">⏳</div>
+                        <div class="empty-text">Loading squad...</div>
+                    </div>
                 </div>
-            </section>
+            </div>
 
-            <section id="allUsersSection" class="friends-section card all-users-panel" style="display:none;">
-                <div class="all-users-head">
-                    <div class="friends-section-title all-users-title">All Users</div>
-                    <button id="closeAddFriendBtn" class="btn btn-secondary btn-sm" type="button">Close</button>
+            <div class="friends-panel" id="panel-received">
+                <div id="receivedRequests">
+                    <div class="empty-gaming">
+                        <div class="empty-icon">⏳</div>
+                        <div class="empty-text">Loading requests...</div>
+                    </div>
                 </div>
-                <div class="all-users-search-wrap">
-                    <input id="allUsersSearch" class="input" type="text" placeholder="Search by name or username">
+            </div>
+
+            <div class="friends-panel" id="panel-sent">
+                <div id="sentRequests">
+                    <div class="empty-gaming">
+                        <div class="empty-icon">⏳</div>
+                        <div class="empty-text">Loading sent requests...</div>
+                    </div>
                 </div>
-                <div id="allUsers" class="user-list">
-                    <div class="friends-placeholder">Use search to find users.</div>
-                </div>
-            </section>
+            </div>
+
         </div>
     </main>
 
