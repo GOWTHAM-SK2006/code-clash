@@ -535,9 +535,27 @@
                     <!-- Main Area: Editor -->
                     <div class="battle-panel-v2">
                         <div class="panel-header-v2">
-                            <div style="display: flex; gap: 0.5rem;">
-                                <span class="badge badge-accent">Solution.py</span>
-                                <span class="badge" style="opacity: 0.5;">Editorial</span>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <span class="badge" style="opacity: 0.5;">Code Editor</span>
+                                <select id="languageSelect" onchange="onLanguageChanged()" style="
+                                    background: rgba(255,107,0,0.1);
+                                    border: 1px solid rgba(255,107,0,0.3);
+                                    color: #FF6B00;
+                                    font-weight: 800;
+                                    font-size: 0.75rem;
+                                    padding: 0.35rem 0.6rem;
+                                    border-radius: 8px;
+                                    cursor: pointer;
+                                    outline: none;
+                                    text-transform: uppercase;
+                                    letter-spacing: 0.5px;
+                                ">
+                                    <option value="python" style="background:#1a1a22;color:#fff;">Python</option>
+                                    <option value="java" style="background:#1a1a22;color:#fff;">Java</option>
+                                    <option value="c" style="background:#1a1a22;color:#fff;">C</option>
+                                    <option value="cpp" style="background:#1a1a22;color:#fff;">C++</option>
+                                    <option value="javascript" style="background:#1a1a22;color:#fff;">JavaScript</option>
+                                </select>
                             </div>
                         </div>
                         

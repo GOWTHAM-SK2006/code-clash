@@ -588,7 +588,8 @@ function showResult(result) {
 }
 
 function getSelectedLanguage() {
-    return 'python';
+    const select = document.getElementById('languageSelect');
+    return select ? select.value : 'python';
 }
 
 function onLanguageChanged() {
