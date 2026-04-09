@@ -495,7 +495,20 @@ public class AdminPanelService {
         p.setStarterCode(StringUtil.safe(body.get("starterCode")));
         p.setExpectedOutput(StringUtil.safe(body.get("expectedOutput")));
         p.setWrapperConfig(StringUtil.safe(body.get("functionSignature")));
-        p.setTestCases("[]");
+        
+        List<Map<String, Object>> initialTestcases = new ArrayList<>();
+        for (int i = 0; i < 15; i++) {
+            Map<String, Object> tc = new LinkedHashMap<>();
+            tc.put("input", "");
+            tc.put("expected", "");
+            tc.put("visible", i < 3);
+            initialTestcases.add(tc);
+        }
+        try {
+            p.setTestCases(objectMapper.writeValueAsString(initialTestcases));
+        } catch (Exception e) {
+            p.setTestCases("[]");
+        }
         return problemRepository.save(p);
     }
 
