@@ -19,5 +19,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findAllByOrderByCoinsDesc();
 
+    List<User> findAllByRoleNotOrderByCoinsDesc(String role);
+
     List<User> findAllByRoleNot(String role);
 }

@@ -634,7 +634,7 @@ public class AdminPanelService {
     }
 
     public List<Map<String, Object>> getLeaderboard() {
-        List<User> users = userRepository.findAllByOrderByCoinsDesc();
+        List<User> users = userRepository.findAllByRoleNotOrderByCoinsDesc("ADMIN");
         List<Map<String, Object>> rows = new ArrayList<>();
         int rank = 1;
         for (User u : users) {

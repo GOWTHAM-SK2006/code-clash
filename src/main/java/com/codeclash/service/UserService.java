@@ -44,7 +44,7 @@ public class UserService {
 
     public DashboardDto getDashboard(String username) {
         User user = getUserByUsername(username);
-        List<User> ranked = userRepository.findAllByOrderByCoinsDesc();
+        List<User> ranked = userRepository.findAllByRoleNotOrderByCoinsDesc("ADMIN");
         long rank = 1;
         for (User u : ranked) {
             if (u.getId().equals(user.getId()))
