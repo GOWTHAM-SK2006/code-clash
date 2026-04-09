@@ -404,39 +404,45 @@
             50% { box-shadow: 0 0 35px rgba(255, 107, 0, 0.4); }
         }
 
-        /* 1v1 Dedicated Layout - Robust CSS */
-        #lobbySlotsContainer[data-mode="1v1"] {
+        /* 1v1 Dedicated Layout - Highly Aggressive CSS */
+        #customLobby[data-mode="1v1"] #lobbySlotsContainer {
             display: flex !important;
             flex-direction: row;
             align-items: center;
             justify-content: center;
-            gap: 4rem;
+            gap: 6rem;
             padding-top: 2rem;
             padding-bottom: 2rem;
         }
 
         @media (max-width: 768px) {
-            #lobbySlotsContainer[data-mode="1v1"] {
+            #customLobby[data-mode="1v1"] #lobbySlotsContainer {
                 flex-direction: column;
                 gap: 2rem;
             }
         }
 
-        #lobbySlotsContainer[data-mode="1v1"] #t1-section,
-        #lobbySlotsContainer[data-mode="1v1"] #t2-section {
+        #customLobby[data-mode="1v1"] #t1-section,
+        #customLobby[data-mode="1v1"] #t2-section {
             width: auto;
             margin: 0;
+            flex: 0 1 auto;
         }
 
-        #lobbySlotsContainer[data-mode="1v1"] #t1-header,
-        #lobbySlotsContainer[data-mode="1v1"] #t2-header,
-        #lobbySlotsContainer[data-mode="1v1"] #slot-1,
-        #lobbySlotsContainer[data-mode="1v1"] #slot-3 {
+        #customLobby[data-mode="1v1"] #t1-header,
+        #customLobby[data-mode="1v1"] #t2-header,
+        #customLobby[data-mode="1v1"] #slot-1,
+        #customLobby[data-mode="1v1"] #slot-3 {
             display: none !important;
         }
 
-        #lobbySlotsContainer[data-mode="1v1"] #vsDivider {
-            display: block !important;
+        #customLobby[data-mode="1v1"] #vsDivider {
+            display: flex !important;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 30;
         }
     </style>
 

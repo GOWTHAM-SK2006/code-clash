@@ -271,6 +271,7 @@ async function initCustomLobby() {
     if (lobby) {
         lobby.classList.remove('hidden');
         lobby.style.display = 'block';
+        lobby.dataset.mode = currentLobbyMode;
     }
     if (defaultLobby) defaultLobby.style.display = 'none';
 
@@ -346,7 +347,9 @@ function updateLobbyUI(data) {
     const participants = data.participants || [];
     const mode = data.battle?.mode || '2v2';
     
+    const lobby = document.getElementById('customLobby');
     const container = document.getElementById('lobbySlotsContainer');
+    if (lobby) lobby.dataset.mode = mode;
     if (container) container.dataset.mode = mode;
 
     // Clear all slots first
@@ -359,16 +362,6 @@ function updateLobbyUI(data) {
         slot.querySelector('.slot-status').textContent = mode === '1v1' ? 'Waiting...' : 'EMPTY';
         slot.querySelector('.slot-avatar').textContent = '+';
         
-        // Hide extra slots for 1v1
-        if (mode === '1v1') {
-            if (i === 1 || i === 3) {
-                slot.style.display = 'none';
-            } else {
-                slot.style.display = 'flex';
-            }
-        } else {
-            slot.style.display = 'flex';
-        }
     }
 
     // Fill slots based on participants
