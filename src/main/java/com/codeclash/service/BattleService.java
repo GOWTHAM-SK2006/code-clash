@@ -263,39 +263,76 @@ public class BattleService {
                         throw new RuntimeException("Invite is no longer pending");
                 }
 
-                // Create the battle using stored difficulty
                 String difficulty = invite.getDifficulty() != null ? invite.getDifficulty() : "Easy";
-                List<Problem> problems = problemRepository.findByDifficulty(difficulty);
-                if (problems.isEmpty()) {
-                        problems = problemRepository.findByDifficulty("Easy");
+                
+                // 1. Check if ANY team is already waiting for this difficulty in 2v2
+                Optional<Battle> waitingBattle = battleRepository
+                        .findFirstByModeAndStatusAndProblemDifficultyIgnoreCaseOrderByStartedAtAsc("2v2", "WAITING", difficulty);
+
+                if (waitingBattle.isPresent()) {
+                        // MATCH FOUND! 
+                        Battle battle = waitingBattle.get();
+                        
+                        // Add this new team (Sender & Receiver) as Team 2
+                        saveParticipant(battle, invite.getSender(), 2);
+                        saveParticipant(battle, receiver, 2);
+                        
+                        // Start the battle
+                        battle.setStatus("ACTIVE");
+                        battle.setStartedAt(LocalDateTime.now());
+                        battleRepository.save(battle);
+                        
+                        invite.setStatus("ACCEPTED");
+                        invite.setBattleId(battle.getId());
+                        inviteRepository.save(invite);
+
+                        // Notify ALL 4 participants via WebSocket
+                        var participants = getBattleParticipants(battle.getId());
+                        for (var p : participants) {
+                                messagingTemplate.convertAndSend("/topic/notifications/" + p.getUser().getUsername(), 
+                                        Map.of(
+                                                "type", "BATTLE_MATCHED",
+                                                "battleId", battle.getId()
+                                        )
+                                );
+                        }
+
+                        return Map.of("status", "matched", "battleId", battle.getId());
+                } else {
+                        // NO TEAM WAITING -> Create a WAITING battle for this duo
+                        List<Problem> problems = problemRepository.findByDifficulty(difficulty);
+                        if (problems.isEmpty()) {
+                                problems = problemRepository.findByDifficulty("Easy");
+                        }
+                        Problem problem = problems.get(new java.util.Random().nextInt(problems.size()));
+
+                        Battle battle = new Battle();
+                        battle.setProblem(problem);
+                        battle.setStatus("WAITING"); // Waiting for opponents
+                        battle.setMode("2v2");
+                        battle.setStartedAt(LocalDateTime.now());
+                        battle.setTimeLimitSeconds(1200);
+                        battleRepository.save(battle);
+
+                        // Add this duo as Team 1
+                        saveParticipant(battle, invite.getSender(), 1);
+                        saveParticipant(battle, receiver, 1);
+
+                        invite.setStatus("ACCEPTED");
+                        invite.setBattleId(battle.getId());
+                        inviteRepository.save(invite);
+
+                        // Notify both members of Team 1
+                        Map<String, Object> teamReadyMsg = Map.of(
+                                "type", "BATTLE_TEAM_READY",
+                                "battleId", battle.getId(),
+                                "difficulty", difficulty
+                        );
+                        messagingTemplate.convertAndSend("/topic/notifications/" + invite.getSender().getUsername(), teamReadyMsg);
+                        messagingTemplate.convertAndSend("/topic/notifications/" + receiver.getUsername(), teamReadyMsg);
+
+                        return Map.of("status", "waiting_for_opponents", "battleId", battle.getId());
                 }
-                Problem problem = problems.get(new java.util.Random().nextInt(problems.size()));
-
-                Battle battle = new Battle();
-                battle.setProblem(problem);
-                battle.setStatus("ACTIVE"); // Start immediately
-                battle.setMode("2v2");
-                battle.setStartedAt(LocalDateTime.now());
-                battle.setTimeLimitSeconds(1200);
-                battleRepository.save(battle);
-
-                // Add both to Team 1
-                saveParticipant(battle, invite.getSender(), 1);
-                saveParticipant(battle, receiver, 1);
-
-                invite.setStatus("ACCEPTED");
-                invite.setBattleId(battle.getId());
-                inviteRepository.save(invite);
-
-                // Notify sender to join the battle
-                messagingTemplate.convertAndSend("/topic/notifications/" + invite.getSender().getUsername(), 
-                        Map.of(
-                                "type", "BATTLE_INVITE_ACCEPTED",
-                                "battleId", battle.getId()
-                        )
-                );
-
-                return Map.of("status", "accepted", "battleId", battle.getId());
         }
 
         private boolean isUserOnline(User user) {

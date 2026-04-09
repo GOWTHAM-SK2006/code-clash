@@ -436,8 +436,14 @@ function connectGlobalWS() {
             const data = JSON.parse(message.body);
             if (data.type === 'BATTLE_INVITE') {
                 showBattleInviteToast(data);
-            } else if (data.type === 'BATTLE_INVITE_ACCEPTED') {
-                window.location.href = `battle.html?id=${data.battleId}&mode=2v2`;
+            } else if (data.type === 'BATTLE_TEAM_READY') {
+                // Team of 2 is formed, now searching for another team
+                if (typeof showSearchingHUD === 'function') {
+                    showSearchingHUD(data.difficulty);
+                }
+            } else if (data.type === 'BATTLE_MATCHED' || data.type === 'BATTLE_INVITE_ACCEPTED') {
+                // Match found! 
+                window.location.href = `battle-room.html?battleId=${data.battleId}`;
             }
         });
     }, (err) => {
@@ -474,8 +480,14 @@ function showBattleInviteToast(data) {
         btn.innerHTML = '...';
         try {
             const res = await api.acceptBattleInvite(data.inviteId);
-            if (res.battleId) {
-                window.location.href = `battle.html?id=${res.battleId}&mode=2v2`;
+            toast.remove();
+            if (res.status === 'matched') {
+                window.location.href = `battle-room.html?battleId=${res.battleId}`;
+            } else if (res.status === 'waiting_for_opponents') {
+                // Show the radar
+                if (typeof showSearchingHUD === 'function') {
+                    showSearchingHUD();
+                }
             }
         } catch (e) {
             showSystemHUD(e.message, 'error');
@@ -514,3 +526,31 @@ function showSystemHUD(message, type = 'success') {
 if (api.isLoggedIn()) {
     initGlobalWebSocket();
 }
+
+/* --- Global Matchmaking HUD Logic --- */
+function showSearchingHUD(difficulty = "") {
+    // Remove if already exists
+    const existing = document.querySelector('.hud-searching-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'hud-searching-overlay';
+    overlay.innerHTML = `
+        <div class="hud-searching-card">
+            <div class="radar-container">
+                <div class="radar-circle"></div>
+                <div class="radar-circle-inner"></div>
+                <div class="radar-sweep"></div>
+                <div class="ping-wave"></div>
+            </div>
+            <div class="hud-searching-status">Team Synchronized</div>
+            <div class="hud-searching-msg">Searching for Opponent Duo ${difficulty ? '['+difficulty+']' : ''}...</div>
+            <p style="color:var(--text-secondary); margin-top:1.5rem; font-size:0.8rem;">The battle will begin automatically once opponents are matched.</p>
+            <button class="btn btn-ghost btn-sm" onclick="location.reload()" style="margin-top:2rem;">Abort Search</button>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
+
+// Make it global
+window.showSearchingHUD = showSearchingHUD;

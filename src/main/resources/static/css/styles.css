@@ -2843,3 +2843,92 @@ main > .container > .friends-section:nth-of-type(4) { animation-delay: 0.4s; }
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+/* --- Global Matchmaking Radar HUD --- */
+.hud-searching-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: rgba(10, 10, 12, 0.95);
+    backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.4s ease;
+}
+
+.hud-searching-card {
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+}
+
+.radar-container {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    margin: 0 auto 3rem;
+}
+
+.radar-circle {
+    position: absolute;
+    inset: 0;
+    border: 2px solid rgba(255, 107, 0, 0.2);
+    border-radius: 50%;
+}
+
+.radar-circle-inner {
+    position: absolute;
+    inset: 20px;
+    border: 1px solid rgba(255, 107, 0, 0.1);
+    border-radius: 50%;
+}
+
+.radar-sweep {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 50%;
+    height: 50%;
+    background: conic-gradient(from 0deg at 0% 100%, rgba(255, 107, 0, 0.4), transparent);
+    transform-origin: 0% 100%;
+    animation: scan 3s linear infinite;
+    border-top-right-radius: 100%;
+}
+
+.ping-wave {
+    position: absolute;
+    inset: 0;
+    border: 2px solid rgba(255, 107, 0, 0.4);
+    border-radius: 50%;
+    animation: pulse-ring 2s cubic-bezier(0.21, 0.61, 0.35, 1) infinite;
+}
+
+@keyframes scan {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-ring {
+    0% { transform: scale(0.3); opacity: 0; }
+    50% { opacity: 0.5; }
+    100% { transform: scale(1.2); opacity: 0; }
+}
+
+.hud-searching-status {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 0.5rem;
+}
+
+.hud-searching-msg {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
