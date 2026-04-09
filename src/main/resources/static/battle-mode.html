@@ -33,12 +33,22 @@
                     <p>Team up with a friend to outcode another duo in real-time!</p>
                     <span class="battle-mode-cta">Choose Difficulty & Invite →</span>
                 </a>
+
+                <a href="battle.html?custom=true" class="card card-glow battle-mode-card battle-mode-card-active" style="border-color: var(--accent); background: linear-gradient(to bottom right, rgba(255,107,0,0.05), transparent);">
+                    <span class="battle-mode-badge" style="background:var(--accent)">Private Arena</span>
+                    <h3>Custom Match</h3>
+                    <p>Invite your friends for private 1v1 or 2v2 battles. Only invited players can join.</p>
+                    <span class="battle-mode-cta" style="color:var(--accent)">Create Private Lobby →</span>
+                </a>
             </div>
         </div>
     </main>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/notification-manager.js"></script>
     <script src="js/battle-mode.js"></script>
 </body>
 

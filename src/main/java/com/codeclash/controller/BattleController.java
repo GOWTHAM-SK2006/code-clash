@@ -89,6 +89,42 @@ public class BattleController {
         }
     }
 
+    @PostMapping("/custom/create")
+    public ResponseEntity<?> createCustomBattle(Authentication auth, @RequestBody Map<String, String> request) {
+        String username = auth.getName();
+        String mode = request.get("mode");
+        String difficulty = request.get("difficulty");
+        try {
+            return ResponseEntity.ok(battleService.createCustomBattle(username, mode, difficulty));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", getSafeMessage(e)));
+        }
+    }
+
+    @PostMapping("/custom/invite")
+    public ResponseEntity<?> sendCustomInvite(Authentication auth, @RequestBody Map<String, Object> request) {
+        String username = auth.getName();
+        Long receiverId = ((Number) request.get("receiverId")).longValue();
+        Long battleId = ((Number) request.get("battleId")).longValue();
+        String inviteType = (String) request.get("inviteType");
+        try {
+            return ResponseEntity.ok(battleService.sendCustomInvite(username, receiverId, battleId, inviteType));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", getSafeMessage(e)));
+        }
+    }
+
+    @PostMapping("/custom/accept")
+    public ResponseEntity<?> acceptCustomInvite(Authentication auth, @RequestBody Map<String, Object> request) {
+        String username = auth.getName();
+        Long inviteId = ((Number) request.get("inviteId")).longValue();
+        try {
+            return ResponseEntity.ok(battleService.acceptCustomInvite(username, inviteId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", getSafeMessage(e)));
+        }
+    }
+
     private String getSafeMessage(Exception exception) {
         String message = exception.getMessage();
         return (message == null || message.isBlank()) ? "Request failed" : message;

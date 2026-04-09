@@ -395,6 +395,120 @@ public class BattleService {
                 return user.getLastActiveAt().isAfter(LocalDateTime.now().minusMinutes(5));
         }
 
+        @Transactional
+        public Map<String, Object> createCustomBattle(String username, String mode, String difficulty) {
+                User host = userRepository.findByUsername(username)
+                                .orElseThrow(() -> new RuntimeException("User not found"));
+                
+                String normalizedDiff = normalizeDifficulty(difficulty);
+                List<Problem> problems = problemRepository.findByDifficulty(normalizedDiff);
+                if (problems.isEmpty()) problems = problemRepository.findAll();
+                Problem problem = problems.get(new java.util.Random().nextInt(problems.size()));
+
+                Battle battle = Battle.builder()
+                                .problem(problem)
+                                .mode(mode)
+                                .status("LOBBY") // Custom matches start in LOBBY status
+                                .isCustom(true)
+                                .startedAt(LocalDateTime.now())
+                                .timeLimitSeconds(mode.equals("2v2") ? 1200 : 900)
+                                .build();
+                battleRepository.save(battle);
+
+                // Host is Team 1 Member 1
+                saveParticipant(battle, host, 1);
+
+                return Map.of("status", "LOBBY", "battleId", battle.getId());
+        }
+
+        @Transactional
+        public Map<String, Object> sendCustomInvite(String senderUsername, Long receiverId, Long battleId, String inviteType) {
+                User sender = userRepository.findByUsername(senderUsername)
+                                .orElseThrow(() -> new RuntimeException("Sender not found"));
+                User receiver = userRepository.findById(receiverId)
+                                .orElseThrow(() -> new RuntimeException("Receiver not found"));
+                Battle battle = battleRepository.findById(battleId)
+                                .orElseThrow(() -> new RuntimeException("Battle not found"));
+
+                BattleInvite invite = BattleInvite.builder()
+                                .sender(sender)
+                                .receiver(receiver)
+                                .battleId(battleId)
+                                .inviteType(inviteType) // TEAMMATE, OPPONENT, 1V1_OPPONENT
+                                .difficulty(battle.getProblem().getDifficulty())
+                                .status("PENDING")
+                                .createdAt(LocalDateTime.now())
+                                .build();
+                inviteRepository.save(invite);
+
+                // Notify receiver via WebSocket
+                Map<String, Object> notification = new HashMap<>();
+                notification.put("type", "BATTLE_INVITE");
+                notification.put("inviteId", invite.getId());
+                notification.put("sender", sender.getDisplayName() != null ? sender.getDisplayName() : sender.getUsername());
+                notification.put("mode", battle.getMode());
+                notification.put("inviteType", inviteType);
+                notification.put("difficulty", battle.getProblem().getDifficulty());
+
+                messagingTemplate.convertAndSend("/topic/notifications/" + receiver.getUsername(), notification);
+
+                return Map.of("status", "sent", "inviteId", invite.getId());
+        }
+
+        @Transactional
+        public Map<String, Object> acceptCustomInvite(String username, Long inviteId) {
+                User receiver = userRepository.findByUsername(username)
+                                .orElseThrow(() -> new RuntimeException("User not found"));
+                BattleInvite invite = inviteRepository.findById(inviteId)
+                                .orElseThrow(() -> new RuntimeException("Invite not found"));
+                Battle battle = battleRepository.findById(invite.getBattleId())
+                                .orElseThrow(() -> new RuntimeException("Battle not found"));
+
+                if (!"PENDING".equalsIgnoreCase(invite.getStatus())) {
+                        throw new RuntimeException("Invite is no longer pending");
+                }
+
+                invite.setStatus("ACCEPTED");
+                inviteRepository.save(invite);
+
+                int teamId = 1; // Default
+                if ("TEAMMATE".equalsIgnoreCase(invite.getInviteType())) {
+                        teamId = 1;
+                } else if ("OPPONENT".equalsIgnoreCase(invite.getInviteType()) || "1V1_OPPONENT".equalsIgnoreCase(invite.getInviteType())) {
+                        teamId = 2;
+                }
+
+                saveParticipant(battle, receiver, teamId);
+
+                List<BattleParticipant> participants = participantRepository.findByBattleId(battle.getId());
+                int required = battle.getMode().equals("2v2") ? 4 : 2;
+
+                if (participants.size() >= required) {
+                        battle.setStatus("ACTIVE");
+                        battle.setStartedAt(LocalDateTime.now());
+                        battleRepository.save(battle);
+                        
+                        // Notify all participants
+                        for (BattleParticipant p : participants) {
+                                messagingTemplate.convertAndSend("/topic/notifications/" + p.getUser().getUsername(), 
+                                        Map.of("type", "BATTLE_START", "battleId", battle.getId()));
+                        }
+                        return Map.of("status", "START", "battleId", battle.getId());
+                } else {
+                        // Notify host of the new join
+                        User host = participants.get(0).getUser();
+                        messagingTemplate.convertAndSend("/topic/notifications/" + host.getUsername(), 
+                                Map.of("type", "BATTLE_JOIN", "battleId", battle.getId(), "user", receiver.getUsername()));
+                        
+                        return Map.of("status", "JOINED", "battleId", battle.getId());
+                }
+        }
+
+        private boolean isUserOnline(User user) {
+                if (user == null || user.getLastActiveAt() == null) return false;
+                return user.getLastActiveAt().isAfter(LocalDateTime.now().minusMinutes(5));
+        }
+
         private void saveParticipant(Battle battle, User user, Integer teamId) {
                 BattleParticipant participant = new BattleParticipant();
                 participant.setBattle(battle);

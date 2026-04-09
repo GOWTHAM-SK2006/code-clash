@@ -47,4 +47,8 @@ public class Battle {
     @Column(nullable = false)
     @Builder.Default
     private Integer timeLimitSeconds = 900;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean isCustom = false;
 }

@@ -32,6 +32,9 @@ public class BattleInvite {
     private String status = "PENDING"; // PENDING, ACCEPTED, DECLINED, EXPIRED
 
     @Column
+    private String inviteType; // TEAMMATE, OPPONENT, 1V1_OPPONENT
+
+    @Column
     private String difficulty;
 
     @Column

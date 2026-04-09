@@ -9,7 +9,11 @@ let selectedDifficulty = null;
     // Detect mode
     const urlParams = new URLSearchParams(window.location.search);
     const mode = urlParams.get('mode');
-    if (mode === '2v2') {
+    const isCustom = urlParams.get('custom') === 'true';
+
+    if (isCustom) {
+        initCustomLobby();
+    } else if (mode === '2v2') {
         const title = document.getElementById('arenaTitle');
         if (title) title.textContent = '2 vs 2 Battle Arena';
     }
@@ -253,13 +257,140 @@ function cancelSearch() {
     if (lobby) lobby.style.display = 'block';
 }
 
+/* --- Custom Match Lobby Logic --- */
+let currentLobbyBattleId = null;
+let currentLobbyMode = '2v2'; // Default
+let currentInviteType = 'TEAMMATE';
+
+async function initCustomLobby() {
+    const title = document.getElementById('arenaTitle');
+    if (title) title.textContent = 'Private Battle Lobby';
+    
+    const lobby = document.getElementById('customLobby');
+    const defaultLobby = document.getElementById('defaultLobby');
+    if (lobby) {
+        lobby.classList.remove('hidden');
+        lobby.style.display = 'block';
+    }
+    if (defaultLobby) defaultLobby.style.display = 'none';
+
+    try {
+        // Create initial lobby
+        const res = await api.request('/battles/custom/create', {
+            method: 'POST',
+            body: JSON.stringify({ mode: currentLobbyMode, difficulty: 'Easy' })
+        });
+        currentLobbyBattleId = res.battleId;
+        startLobbyPolling();
+    } catch (e) {
+        console.error('Lobby creation failed:', e);
+    }
+}
+
+window.setLobbyMode = async (mode) => {
+    currentLobbyMode = mode;
+    
+    // UI Update
+    const btn1v1 = document.getElementById('modeBtn1v1');
+    const btn2v2 = document.getElementById('modeBtn2v2');
+    if (mode === '1v1') {
+        btn1v1.classList.add('bg-[#FF6B00]', 'text-white');
+        btn2v2.classList.remove('bg-[#FF6B00]', 'text-white');
+    } else {
+        btn2v2.classList.add('bg-[#FF6B00]', 'text-white');
+        btn1v1.classList.remove('bg-[#FF6B00]', 'text-white');
+    }
+
+    // Backend update (re-use create endpoint or create a new update endpoint)
+    // For now we'll just update local state and let the polling handle slot visibility
+    // But ideally we'd tell the server the mode changed.
+    try {
+        await api.request(`/battles/custom/create`, {
+             method: 'POST',
+             body: JSON.stringify({ mode: mode, difficulty: 'Easy' })
+        });
+        // We'll just redirect to refresh the lobby state
+        const url = new URL(window.location.href);
+        url.searchParams.set('mode', mode); // Persist mode in URL
+        window.history.pushState({}, '', url);
+        location.reload(); 
+    } catch(e) {}
+};
+
+function startLobbyPolling() {
+    setInterval(async () => {
+        if (!currentLobbyBattleId) return;
+        try {
+            const data = await api.getBattle(currentLobbyBattleId);
+            updateLobbyUI(data);
+            
+            if (data.battle?.status === 'ACTIVE') {
+                window.location.href = `battle-room.html?battleId=${currentLobbyBattleId}`;
+            }
+        } catch (e) {}
+    }, 2000);
+}
+
+function updateLobbyUI(data) {
+    const participants = data.participants || [];
+    const mode = data.battle?.mode || '2v2';
+    
+    // Clear all slots first
+    for (let i = 1; i < 4; i++) {
+        const slot = document.getElementById(`slot-${i}`);
+        if (!slot) continue;
+        slot.className = 'lobby-slot slot-empty';
+        slot.querySelector('.slot-name').textContent = i === 1 ? 'Invite Teammate' : 'Invite Opponent';
+        slot.querySelector('.slot-status').textContent = 'EMPTY';
+        slot.querySelector('.slot-avatar').textContent = '+';
+        
+        // Hide extra slots for 1v1
+        if (mode === '1v1' && i > 2) {
+            slot.style.display = 'none';
+        } else {
+            slot.style.display = 'flex';
+        }
+    }
+
+    // Fill slots based on participants
+    // Slot 0 is always host
+    participants.forEach((p, idx) => {
+        if (idx === 0) return; // Skip host
+        
+        // Logic to assign participant to slot based on team
+        let slotIdx = -1;
+        if (p.teamId === 1) slotIdx = 1; // Teammate slot
+        else {
+            // Opponent slots (2 and 3)
+            const slot2 = document.getElementById('slot-2');
+            if (slot2 && slot2.classList.contains('slot-empty')) slotIdx = 2;
+            else slotIdx = 3;
+        }
+
+        const slot = document.getElementById(`slot-${slotIdx}`);
+        if (slot) {
+            slot.className = 'lobby-slot slot-filled';
+            slot.querySelector('.slot-name').textContent = p.user?.displayName || p.user?.username;
+            slot.querySelector('.slot-status').textContent = 'JOINED';
+            slot.querySelector('.slot-avatar').textContent = (p.user?.displayName || 'P')[0].toUpperCase();
+            slot.onclick = null; // Don't allow re-inviting filled slot
+        }
+    });
+
+    if (mode === '1v1') {
+        const t2Header = document.querySelector('#lobbySlotsContainer div:nth-child(2) p');
+        if (t2Header) t2Header.textContent = 'Team 2 (Opponent)';
+    }
+}
+
 /* --- 2v2 Recruitment Logic --- */
-function openRecruitmentModal(difficulty) {
+function openRecruitmentModal(difficulty, inviteType = 'TEAMMATE') {
+    currentInviteType = inviteType;
     const modal = document.getElementById('inviteModal');
     const diffText = document.getElementById('inviteModalDifficulty');
     if (modal) {
         modal.classList.remove('hidden');
-        if (diffText) diffText.textContent = `Mission Difficulty: ${difficulty}`;
+        if (diffText) diffText.textContent = `Mission: Recruiting ${inviteType}`;
         loadRecruitmentFriends();
     }
 
@@ -334,7 +465,22 @@ window.recruitFriend = async (friendId) => {
 
     const performPing = async () => {
         try {
-            const res = await api.inviteTeamBattle(friendId, selectedDifficulty);
+            let res;
+            if (currentLobbyBattleId) {
+                // Custom match invite logic
+                res = await api.request('/battles/custom/invite', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        receiverId: friendId,
+                        battleId: currentLobbyBattleId,
+                        inviteType: currentInviteType
+                    })
+                });
+            } else {
+                // Standard 2v2 random matchmaking teammate invite
+                res = await api.inviteTeamBattle(friendId, selectedDifficulty);
+            }
+            
             if (res.error) {
                 if (typeof showSystemHUD === 'function') showSystemHUD(res.error, 'error');
                 cleanup();
