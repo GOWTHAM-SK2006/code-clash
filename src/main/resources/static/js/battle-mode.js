@@ -57,13 +57,33 @@
     }
 
     window.inviteFriend = async (friendId) => {
+        // Show pulse overlay
+        const pulse = document.createElement('div');
+        pulse.className = 'hud-pulse-overlay';
+        pulse.innerHTML = `
+            <div class="hud-pulse-card">
+                <div class="hud-pulse-loader"></div>
+                <div class="hud-pulse-text">Establishing Link...</div>
+                <p style="color:var(--text-secondary); margin-top:-1rem;">Waiting for friend to accept mission</p>
+                <button class="btn btn-ghost btn-sm" onclick="this.parentElement.parentElement.remove()" style="margin-top:1rem;">Cancel Request</button>
+            </div>
+        `;
+        document.body.appendChild(pulse);
+
         try {
             const res = await api.inviteTeamBattle(friendId);
-            if (res.battleId) {
-                window.location.href = `battle.html?id=${res.battleId}&mode=2v2`;
+            // We don't redirect here anymore. 
+            // The global WebSocket listener in auth.js will handle the redirect 
+            // when the friend accepts.
+            
+            // If we actually returned an error or something else...
+            if (res.error) {
+                pulse.remove();
+                showSystemHUD(res.error, 'error');
             }
         } catch (err) {
-            alert(err.message);
+            pulse.remove();
+            showSystemHUD(err.message, 'error');
         }
     };
 })();

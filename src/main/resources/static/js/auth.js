@@ -447,41 +447,67 @@ function connectGlobalWS() {
 }
 
 function showBattleInviteToast(data) {
+    // Remove existing if any
+    const existing = document.querySelector('.hud-toast');
+    if (existing) existing.remove();
+
     const toast = document.createElement('div');
-    toast.className = 'battle-invite-toast';
+    toast.className = 'hud-toast';
     toast.innerHTML = `
-        <div class="toast-content">
-            <div class="toast-icon">⚔️</div>
-            <div class="toast-details">
-                <span class="toast-title">Battle Request!</span>
-                <span class="toast-msg"><b>${data.fromDisplayName}</b> ${data.message}</span>
+        <div class="hud-header">
+            <div class="hud-icon-box">⚔️</div>
+            <div class="hud-details">
+                <span class="hud-title">Combat Mission</span>
+                <span class="hud-msg"><b>${data.fromDisplayName}</b> is requesting back-up in a 2v2 Battle!</span>
             </div>
         </div>
-        <div class="toast-actions">
-            <button class="btn btn-primary btn-sm" id="acceptInviteBtn-${data.inviteId}">Accept</button>
-            <button class="btn btn-ghost btn-sm" id="declineInviteBtn-${data.inviteId}">Decline</button>
+        <div class="hud-actions">
+            <button class="hud-btn hud-btn-reject" id="rejectInviteBtn-${data.inviteId}" title="Decline Mission">✖</button>
+            <button class="hud-btn hud-btn-accept" id="acceptInviteBtn-${data.inviteId}" title="Accept Mission">✔</button>
         </div>
     `;
     document.body.appendChild(toast);
 
     document.getElementById(`acceptInviteBtn-${data.inviteId}`).onclick = async () => {
+        const btn = document.getElementById(`acceptInviteBtn-${data.inviteId}`);
+        btn.disabled = true;
+        btn.innerHTML = '...';
         try {
             const res = await api.acceptBattleInvite(data.inviteId);
             if (res.battleId) {
                 window.location.href = `battle.html?id=${res.battleId}&mode=2v2`;
             }
         } catch (e) {
-            alert(e.message);
+            showSystemHUD(e.message, 'error');
             toast.remove();
         }
     };
 
-    document.getElementById(`declineInviteBtn-${data.inviteId}`).onclick = () => {
+    document.getElementById(`rejectInviteBtn-${data.inviteId}`).onclick = () => {
         toast.remove();
     };
 
     // Auto-remove after 30s
     setTimeout(() => { if (toast.parentElement) toast.remove(); }, 30000);
+}
+
+function showSystemHUD(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = 'hud-toast system-hud';
+    toast.style.borderColor = type === 'error' ? '#FF3D00' : 'var(--accent)';
+    toast.innerHTML = `
+        <div class="hud-header">
+            <div class="hud-icon-box" style="border-color:${type === 'error' ? '#FF3D00' : 'var(--accent)'}">
+                ${type === 'error' ? '⚠️' : '✅'}
+            </div>
+            <div class="hud-details">
+                <span class="hud-title">${type === 'error' ? 'System Error' : 'System Message'}</span>
+                <span class="hud-msg">${message}</span>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => { if (toast.parentElement) toast.remove(); }, 5000);
 }
 
 // Auto-init for authenticated pages
