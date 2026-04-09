@@ -660,8 +660,16 @@ public class BattleService {
                 int fee = getEntryFeeByDifficulty(battle.getProblem().getDifficulty());
                 int reward = fee * 2;
                 
+                // Find an opponent for winnerId fallback
+                BattleParticipant opponentEntry = participants.stream()
+                        .filter(p -> p.getTeamId().equals(opponentTeamId))
+                        .findFirst().orElse(null);
+
                 battle.setStatus("FINISHED");
                 battle.setWinningTeamId(opponentTeamId);
+                if (opponentEntry != null) {
+                        battle.setWinnerId(opponentEntry.getUser().getId());
+                }
                 battle.setEndedAt(LocalDateTime.now());
                 battleRepository.save(battle);
                 

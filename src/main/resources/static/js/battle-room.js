@@ -565,23 +565,17 @@ function showResult(result) {
         icon = '🏆';
         title = 'YOU WIN';
         const reward = result.problem?.difficulty === 'Hard' ? 60 : (result.problem?.difficulty === 'Medium' ? 40 : 30);
-        desc = `Mission Objective Secured! +${reward} Coins awarded.`;
+        desc = `Mission Secured! +${reward} Coins awarded.`;
     } else if (isDraw) {
         theme = 'theme-accent';
         icon = '⏱️';
         title = 'DRAW';
-        desc = 'No team managed to complete the challenge in time.';
+        desc = 'No team completed the mission.';
     } else if (result.status === 'CANCELLED' || result.winnerId || result.winningTeamId) {
         theme = 'theme-danger';
         icon = '💀';
         title = 'DEFEAT';
-        if (tabSwitchForfeitTriggered) {
-            desc = 'Disqualified — Tab switch violation.';
-        } else if (fullscreenForfeitTriggered) {
-            desc = 'Disqualified — Fullscreen exit detected.';
-        } else {
-            desc = 'Mission failed. Your opponent secured the objective.';
-        }
+        desc = 'Mission failed. Opponent secured the objective.';
     } else {
         resultEl.innerHTML = `
             <div class="result-card-v2 theme-accent">
