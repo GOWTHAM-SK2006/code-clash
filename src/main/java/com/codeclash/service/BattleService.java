@@ -615,8 +615,16 @@ public class BattleService {
                 int fee = getEntryFeeByDifficulty(battle.getProblem().getDifficulty());
                 int reward = fee * 2;
 
+                // Find an opponent to set as winnerId (for 1v1 compatibility)
+                BattleParticipant opponentEntry = participants.stream()
+                        .filter(p -> p.getTeamId().equals(opponentTeamId))
+                        .findFirst().orElse(null);
+
                 battle.setStatus("CANCELLED");
                 battle.setWinningTeamId(opponentTeamId);
+                if (opponentEntry != null) {
+                        battle.setWinnerId(opponentEntry.getUser().getId());
+                }
                 battle.setEndedAt(LocalDateTime.now());
                 battleRepository.save(battle);
 
@@ -625,6 +633,7 @@ public class BattleService {
                         .filter(p -> p.getTeamId().equals(opponentTeamId))
                         .forEach(p -> coinService.awardCoins(p.getUser(), reward, "Battle cancel win reward (2x) #" + battleId));
 
+                broadcastBattleStatus(battle);
                 return battle;
         }
 
@@ -773,6 +782,7 @@ public class BattleService {
                     coinService.awardCoins(p.getUser(), fee, "Battle Draw Refund #" + battle.getId());
                 }
 
+                broadcastBattleStatus(battle);
                 return battle;
         }
 

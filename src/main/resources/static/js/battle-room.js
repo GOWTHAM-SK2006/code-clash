@@ -24,6 +24,7 @@ let battleTimeoutTriggered = false;
 let stompClient = null;
 let isRemoteChange = false;
 let userTeamId = null;
+let resultShown = false;
 
 const DEFAULT_STARTER_CODE = '';
 
@@ -525,8 +526,15 @@ async function cancelMatch() {
 }
 
 function showResult(result) {
+    if (resultShown) return; // Prevent duplicate result screens
+    resultShown = true;
     fullscreenGuardEnabled = false;
     pageExitGuardEnabled = false;
+
+    // Exit fullscreen if active
+    if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+    }
 
     const resultEl = document.getElementById('battleResult');
     resultEl.className = 'result-screen-overlay';
