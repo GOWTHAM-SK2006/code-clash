@@ -347,15 +347,7 @@ function updateLobbyUI(data) {
     const mode = data.battle?.mode || '2v2';
     
     const container = document.getElementById('lobbySlotsContainer');
-    const vsDivider = document.getElementById('vsDivider');
-
-    if (mode === '1v1') {
-        if (container) container.className = 'flex flex-col md:flex-row items-center justify-center gap-12 relative py-8';
-        if (vsDivider) vsDivider.classList.remove('hidden');
-    } else {
-        if (container) container.className = 'grid grid-cols-2 gap-6 relative';
-        if (vsDivider) vsDivider.classList.add('hidden');
-    }
+    if (container) container.dataset.mode = mode;
 
     // Clear all slots first
     for (let i = 1; i < 4; i++) {
@@ -417,22 +409,12 @@ function updateLobbyUI(data) {
         }
     }
 
-    if (mode === '1v1') {
-        const t1Header = document.querySelector('#lobbySlotsContainer div:nth-child(2) p');
-        const t2Header = document.querySelector('#lobbySlotsContainer div:nth-child(3) p');
-        if (t1Header) t1Header.style.display = 'none';
-        if (t2Header) t2Header.style.display = 'none';
-    } else {
-        const t1Header = document.querySelector('#lobbySlotsContainer div:nth-child(2) p');
-        const t2Header = document.querySelector('#lobbySlotsContainer div:nth-child(3) p');
-        if (t1Header) {
-            t1Header.style.display = 'block';
-            t1Header.textContent = 'Team 1 (Your Team)';
-        }
-        if (t2Header) {
-            t2Header.style.display = 'block';
-            t2Header.textContent = 'Team 2 (Opponents)';
-        }
+    // Headers are now handled primarily by CSS data-mode selectors
+    if (mode === '2v2') {
+        const t1Header = document.getElementById('t1-header');
+        const t2Header = document.getElementById('t2-header');
+        if (t1Header) t1Header.textContent = 'Team 1 (Your Team)';
+        if (t2Header) t2Header.textContent = 'Team 2 (Opponents)';
     }
 }
 

@@ -111,15 +111,15 @@
                             </div>
                         </div>
 
-                        <div id="lobbySlotsContainer" class="grid grid-cols-2 gap-6 relative">
+                        <div id="lobbySlotsContainer" class="grid grid-cols-2 gap-6 relative" data-mode="2v2">
                             <!-- VS Divider (1v1 mode only) -->
                             <div id="vsDivider" class="hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
                                 <div class="w-12 h-12 rounded-full bg-black border-2 border-white flex items-center justify-center text-[10px] font-black italic shadow-[0_0_20px_rgba(255,255,255,0.3)]">VS</div>
                             </div>
 
                             <!-- Team 1 -->
-                            <div class="space-y-4">
-                                <p class="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] text-center">Team 1 (Your Team)</p>
+                            <div id="t1-section" class="space-y-4">
+                                <p id="t1-header" class="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] text-center">Team 1 (Your Team)</p>
                                 <div class="space-y-3">
                                     <div class="lobby-slot slot-filled" id="slot-0">
                                         <div class="slot-avatar">H</div>
@@ -139,8 +139,8 @@
                             </div>
 
                             <!-- Team 2 -->
-                            <div class="space-y-4">
-                                <p class="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] text-center">Team 2 (Opponents)</p>
+                            <div id="t2-section" class="space-y-4">
+                                <p id="t2-header" class="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] text-center">Team 2 (Opponents)</p>
                                 <div class="space-y-3">
                                     <div class="lobby-slot slot-empty" id="slot-2" onclick="openRecruitmentModal('Custom', 'OPPONENT')">
                                         <div class="slot-avatar">+</div>
@@ -402,6 +402,41 @@
         @keyframes pulse-glow-orange {
             0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 0, 0.2); }
             50% { box-shadow: 0 0 35px rgba(255, 107, 0, 0.4); }
+        }
+
+        /* 1v1 Dedicated Layout - Robust CSS */
+        #lobbySlotsContainer[data-mode="1v1"] {
+            display: flex !important;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 4rem;
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            #lobbySlotsContainer[data-mode="1v1"] {
+                flex-direction: column;
+                gap: 2rem;
+            }
+        }
+
+        #lobbySlotsContainer[data-mode="1v1"] #t1-section,
+        #lobbySlotsContainer[data-mode="1v1"] #t2-section {
+            width: auto;
+            margin: 0;
+        }
+
+        #lobbySlotsContainer[data-mode="1v1"] #t1-header,
+        #lobbySlotsContainer[data-mode="1v1"] #t2-header,
+        #lobbySlotsContainer[data-mode="1v1"] #slot-1,
+        #lobbySlotsContainer[data-mode="1v1"] #slot-3 {
+            display: none !important;
+        }
+
+        #lobbySlotsContainer[data-mode="1v1"] #vsDivider {
+            display: block !important;
         }
     </style>
 
