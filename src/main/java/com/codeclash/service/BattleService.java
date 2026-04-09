@@ -70,6 +70,15 @@ public class BattleService {
                         payload.put("status", battle.getStatus());
                         payload.put("winningTeamId", battle.getWinningTeamId() != null ? battle.getWinningTeamId() : 0);
                         payload.put("winnerId", battle.getWinnerId() != null ? battle.getWinnerId() : 0);
+                        
+                        // Enriched metadata for instant UI rendering
+                        if (battle.getProblem() != null) {
+                                java.util.Map<String, Object> problemMap = new java.util.HashMap<>();
+                                problemMap.put("title", battle.getProblem().getTitle());
+                                problemMap.put("difficulty", battle.getProblem().getDifficulty());
+                                payload.put("problem", problemMap);
+                        }
+                        
                         messagingTemplate.convertAndSend("/topic/battle/" + battle.getId() + "/status", payload);
                 } catch (Exception e) {
                         // Non-critical sync - log and continue

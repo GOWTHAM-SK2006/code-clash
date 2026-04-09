@@ -1096,21 +1096,11 @@ function initWebSocket() {
         stompClient.subscribe(`/topic/battle/${currentBattleId}/status`, (message) => {
             const data = JSON.parse(message.body);
             console.log('[WebSocket] Status Update Received:', data);
+            
             if (data.status === 'FINISHED' || data.status === 'CANCELLED') {
-                // If it was already shown (e.g. by our own submit), ignore duplicate
-                if (resultShown) return;
-
-                // Attempt to show result with broadcast data immediately for maximum speed
-                // Then refresh with full data if possible
+                // IMPORTANT: Show result with ENRICHED broadcast data immediately for maximum speed
+                // The broadcast now contains 'problem' info for coin calculation
                 showResult(data);
-
-                api.getBattle(currentBattleId).then(fullData => {
-                    // Update the screen with full data (like coins won) if needed
-                    // Re-triggering showResult is safe due to the resultShown guard inside it
-                    showResult(fullData.battle);
-                }).catch(err => {
-                    console.error('[WebSocket] Failed to fetch full battle details:', err);
-                });
             }
         });
     }, (err) => {
