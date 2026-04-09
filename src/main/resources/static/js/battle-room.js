@@ -231,16 +231,8 @@ async function loadBattleDetails() {
         const battle = data.battle;
         const participants = data.participants || [];
 
-        if (battle.status === 'FINISHED' || battle.status === 'CANCELLED') {
-            showResult(battle);
-            return;
-        }
-
-        document.getElementById('battleProblemTitle').textContent = battle.problem?.title || 'Problem';
-        document.getElementById('battleProblemDesc').textContent = battle.problem?.description || '';
-        currentProblem = battle.problem || null;
-
-        // Determine user team
+        // Determine user identity and team IMMEDIATELY after fetching data
+        // This MUST happen before checking battle.status to ensure correct Win/Loss detection
         const me = api.getUser();
         if (me && participants) {
             // Backend User entity has 'id' field, not 'userId'
@@ -252,6 +244,13 @@ async function loadBattleDetails() {
                 console.warn('[Sync] Could not identify user team. me.userId:', me.userId, 'participants:', participants);
             }
         }
+
+        if (battle.status === 'FINISHED' || battle.status === 'CANCELLED') {
+            showResult(battle);
+            return;
+        }
+
+        document.getElementById('battleProblemTitle').textContent = battle.problem?.title || 'Problem';
 
         // Input/Output Format
         const formatSection = document.getElementById('formatSection');
@@ -299,9 +298,7 @@ async function loadBattleDetails() {
         startStatusPolling();
 
         if (battle.mode === '2v2') {
-            const currentUser = api.getUser();
-            const myParticipant = participants.find(p => p.user?.userId === currentUser?.userId);
-            userTeamId = myParticipant?.teamId;
+            // Team ID is already set at the start of this function
             
             // Show all participants for 2v2
             renderTeamParticipants(participants);
@@ -555,7 +552,15 @@ function showResult(result) {
     let theme = 'theme-accent';
     let icon = '⏱️';
     let title = 'Result';
-    let desc = '';
+    
+    // Fallback: If userTeamId is missing, try to find it in the result object's participants list
+    if (!userTeamId && user && result.participants) {
+        const mePart = result.participants.find(p => (p.user?.id || p.user?.userId) === user.userId);
+        if (mePart) {
+            userTeamId = mePart.teamId;
+            console.log('[Sync] Identified Team ID from result data:', userTeamId);
+        }
+    }
 
     const isWinner = result.winningTeamId ? (result.winningTeamId === userTeamId) : (result.winnerId === user?.userId);
     const isDraw = (result.status === 'CANCELLED' || result.status === 'FINISHED') && !result.winnerId && !result.winningTeamId;

@@ -78,6 +78,21 @@ public class BattleService {
                                 problemMap.put("difficulty", battle.getProblem().getDifficulty());
                                 payload.put("problem", problemMap);
                         }
+
+                        // Include participants for unambiguous victory detection
+                        List<BattleParticipant> participants = participantRepository.findByBattleId(battle.getId());
+                        java.util.List<java.util.Map<String, Object>> partsList = new java.util.ArrayList<>();
+                        for (var p : participants) {
+                                java.util.Map<String, Object> pMap = new java.util.HashMap<>();
+                                pMap.put("teamId", p.getTeamId());
+                                if (p.getUser() != null) {
+                                        java.util.Map<String, Object> uMap = new java.util.HashMap<>();
+                                        uMap.put("id", p.getUser().getId());
+                                        pMap.put("user", uMap);
+                                }
+                                partsList.add(pMap);
+                        }
+                        payload.put("participants", partsList);
                         
                         messagingTemplate.convertAndSend("/topic/battle/" + battle.getId() + "/status", payload);
                 } catch (Exception e) {
