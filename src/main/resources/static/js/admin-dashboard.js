@@ -13,8 +13,7 @@ const sections = [
     'Users',
     'Leaderboard',
     'Settings',
-    'Events',
-    'Support Queries'
+    'Events'
 ];
 
 let currentSection = 'Dashboard';
@@ -1180,187 +1179,8 @@ async function renderSettings() {
     };
 }
 
-async function renderQueryThread(queryId) {
-    if (queryPollingInterval) clearInterval(queryPollingInterval);
-    
-    const messages = await adminRequest(`/queries/${queryId}/messages`);
-    const allQueries = await adminRequest('/queries/all');
-    const query = allQueries.find(q => q.id === queryId);
 
-    if (!query) {
-        activeQueryId = null;
-        return renderSupportQueries();
-    }
 
-    sectionRoot.innerHTML = `
-        <div class="animate-fade-in">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem;">
-                <h2 style="font-size: 1.8rem; font-weight: 900; display:flex; align-items:center; gap:0.8rem;">
-                    <button id="backToQueries" class="btn btn-secondary btn-sm" style="padding: 0.4rem 0.8rem; height:auto; min-width:auto;">← BACK</button>
-                    <span>${query.subject}</span>
-                    <span class="status-badge ${query.status.toLowerCase()}" style="font-size:0.7rem;">${query.status}</span>
-                </h2>
-                <div style="color:var(--text-muted); font-size:0.9rem;">User: <b>${query.user.displayName || query.user.username}</b></div>
-            </div>
-
-            <div class="messages-container" id="admin_messages_container" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; height: 450px; overflow-y: auto; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap:1rem;">
-                ${renderAdminChatMessages(messages)}
-            </div>
-
-            <div style="display:flex; gap:1rem; background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border);">
-                <input type="text" id="admin_reply_input" placeholder="Type your response here..." style="flex:1; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color:white; padding: 0.8rem 1.2rem; border-radius: 12px; outline:none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
-                <button id="admin_send_reply" class="btn btn-primary" style="padding: 0 2rem;">SEND</button>
-            </div>
-        </div>
-    `;
-
-    document.getElementById('backToQueries').onclick = () => {
-        activeQueryId = null;
-        if (queryPollingInterval) clearInterval(queryPollingInterval);
-        renderSupportQueries();
-    };
-
-    const sendBtn = document.getElementById('admin_send_reply');
-    const input = document.getElementById('admin_reply_input');
-
-    const handleSend = async () => {
-        const content = input.value.trim();
-        if (!content) return;
-        
-        sendBtn.disabled = true;
-        try {
-            await adminRequest(`/queries/${queryId}/reply`, {
-                method: 'POST',
-                body: JSON.stringify({ content })
-            });
-            input.value = '';
-            const newMessages = await adminRequest(`/queries/${queryId}/messages`);
-            document.getElementById('admin_messages_container').innerHTML = renderAdminChatMessages(newMessages);
-            const container = document.getElementById('admin_messages_container');
-            container.scrollTop = container.scrollHeight;
-        } catch (e) {
-            showAlert('Failed to send reply: ' + e.message);
-        } finally {
-            sendBtn.disabled = false;
-        }
-    };
-
-    sendBtn.onclick = handleSend;
-    input.onkeypress = (e) => { if (e.key === 'Enter') handleSend(); };
-
-    const container = document.getElementById('admin_messages_container');
-    container.scrollTop = container.scrollHeight;
-
-    queryPollingInterval = setInterval(async () => {
-        if (currentSection !== 'Support Queries' || activeQueryId !== queryId) {
-            clearInterval(queryPollingInterval);
-            return;
-        }
-        try {
-            const newMessages = await adminRequest(`/queries/${queryId}/messages`);
-            const container = document.getElementById('admin_messages_container');
-            if (newMessages.length > messages.length) {
-                container.innerHTML = renderAdminChatMessages(newMessages);
-                container.scrollTop = container.scrollHeight;
-            }
-        } catch (e) { console.error('Polling failed', e); }
-    }, 5000);
-
-    if (window.lucide) lucide.createIcons();
-}
-
-function renderAdminChatMessages(messages) {
-    if (messages.length === 0) return `<div style="text-align:center; color:var(--text-muted); margin-top:2rem;">No messages yet.</div>`;
-    
-    return messages.map(m => {
-        const isAdmin = m.sender.role === 'ADMIN';
-        return `
-            <div style="max-width: 80%; ${isAdmin ? 'align-self: flex-end;' : 'align-self: flex-start;'}">
-                <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.3rem; display: flex; align-items:center; gap:0.5rem; ${isAdmin ? 'justify-content: flex-end;' : ''}">
-                    <b>${m.sender.displayName || m.sender.username}</b>
-                    <span>•</span>
-                    <span>${new Date(m.createdAt).toLocaleString()}</span>
-                </div>
-                <div style="background: ${isAdmin ? 'var(--accent-gradient)' : 'rgba(255,255,255,0.06)'}; color: ${isAdmin ? 'white' : 'var(--text-primary)'}; padding: 0.9rem 1.2rem; border-radius: 12px; border: 1px solid ${isAdmin ? 'transparent' : 'var(--border)'}; line-height: 1.5; font-size: 0.95rem;">
-                    ${m.content}
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-let activeQueryId = null;
-let queryPollingInterval = null;
-
-async function renderSupportQueries() {
-    if (activeQueryId) {
-        return renderQueryThread(activeQueryId);
-    }
-    const queries = await adminRequest('/queries/all');
-    sectionRoot.innerHTML = `
-        <div class="animate-fade-in">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem;">
-                <h2 style="font-size: 1.8rem; font-weight: 900; display:flex; align-items:center; gap:0.8rem;">
-                    <i data-lucide="message-square" style="color:var(--accent); width:28px; height:28px;"></i> Support Queries
-                </h2>
-                <div class="badge badge-accent" style="padding: 0.5rem 1rem;">Total Queries: ${queries.length}</div>
-            </div>
-
-            <div class="history-table-container">
-                <table class="history-table">
-                    <thead>
-                        <tr>
-                            <th>User</th>
-                            <th>Subject</th>
-                            <th>Status</th>
-                            <th>Last Update</th>
-                            <th style="text-align:center;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${queries.map((q, idx) => `
-                            <tr class="stagger-card" style="animation-delay: ${idx * 0.05}s">
-                                <td style="font-weight:700;">${q.user.displayName || q.user.username}</td>
-                                <td>${q.subject}</td>
-                                <td>
-                                    <span class="status-badge ${q.status.toLowerCase()}">
-                                        ${q.status}
-                                    </span>
-                                </td>
-                                <td>${new Date(q.updatedAt || q.createdAt).toLocaleString()}</td>
-                                <td style="text-align:center;">
-                                    <button class="btn btn-primary btn-sm" data-view="${q.id}">View & Reply</button>
-                                    ${q.status === 'OPEN' ? `<button class="btn btn-secondary btn-sm" data-resolve="${q.id}">Resolve</button>` : ''}
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `;
-
-    sectionRoot.querySelectorAll('[data-view]').forEach(btn => {
-        btn.onclick = () => {
-            activeQueryId = parseInt(btn.dataset.view);
-            renderQueryThread(activeQueryId);
-        };
-    });
-
-    sectionRoot.querySelectorAll('[data-resolve]').forEach(btn => {
-        btn.onclick = async () => {
-            if (!confirm('Mark this query as resolved?')) return;
-            try {
-                await adminRequest(`/queries/${btn.dataset.resolve}/resolve`, { method: 'POST' });
-                renderSupportQueries();
-            } catch (err) {
-                showAlert('Failed to resolve query: ' + err.message);
-            }
-        };
-    });
-
-    if (window.lucide) lucide.createIcons();
-}
 
 async function renderSection(silent = false) {
     if (!silent) {
@@ -1383,7 +1203,7 @@ async function renderSection(silent = false) {
         else if (currentSection === 'Leaderboard') await renderLeaderboard();
         else if (currentSection === 'Settings') await renderSettings();
         else if (currentSection === 'Events') await renderEvents();
-        else if (currentSection === 'Support Queries') await renderSupportQueries();
+
     } catch (e) {
         showAlert(e.message || 'Failed to load section');
     } finally {
@@ -2180,10 +2000,6 @@ function renderUserDetailModal(data) {
                 </div>
 
                 <div style="margin-top:2rem; padding:1.5rem; background:rgba(255,255,255,0.02); border-radius:16px; border:1px solid rgba(255,255,255,0.05); display:grid; grid-template-columns:repeat(3, 1fr); gap:1.5rem;">
-                    <div>
-                        <div style="font-size:0.7rem; color:var(--text-secondary); text-transform:uppercase; font-weight:800;">LeetCode ID</div>
-                        <div style="color:#fff; font-weight:600;">${user.leetcodeUsername || 'Not Linked'}</div>
-                    </div>
                     <div>
                         <div style="font-size:0.7rem; color:var(--text-secondary); text-transform:uppercase; font-weight:800;">Joined On</div>
                         <div style="color:#fff; font-weight:600;">${new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>

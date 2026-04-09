@@ -2,9 +2,7 @@ package com.codeclash.service;
 
 import com.codeclash.dto.ChangePasswordRequest;
 import com.codeclash.dto.DashboardDto;
-import com.codeclash.entity.LeetcodeProfile;
 import com.codeclash.entity.User;
-import com.codeclash.repository.LeetcodeProfileRepository;
 import com.codeclash.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,7 +20,6 @@ public class UserService {
     private final CoinService coinService;
 
     private final UserRepository userRepository;
-    private final LeetcodeProfileRepository leetcodeProfileRepository;
     private final PasswordEncoder passwordEncoder;
 
     public void changePassword(String username, ChangePasswordRequest request) {
@@ -56,12 +53,7 @@ public class UserService {
             rank++;
         }
 
-        Optional<LeetcodeProfile> profile = leetcodeProfileRepository.findByUserId(user.getId());
-        int solvedCount = profile.map(p -> 
-            (p.getEasySolved() != null ? p.getEasySolved() : 0) +
-            (p.getMediumSolved() != null ? p.getMediumSolved() : 0) +
-            (p.getHardSolved() != null ? p.getHardSolved() : 0)
-        ).orElse(user.getProblemsSolved());
+        int solvedCount = user.getProblemsSolved();
 
         return DashboardDto.builder()
                 .username(user.getUsername())

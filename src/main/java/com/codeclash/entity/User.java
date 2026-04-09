@@ -37,8 +37,6 @@ public class User implements UserDetails {
     @Column(length = 100)
     private String displayName;
 
-    @Column(unique = true, length = 100)
-    private String leetcodeUsername;
 
     @Column(nullable = false)
     @Builder.Default

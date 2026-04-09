@@ -14,18 +14,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const coinsEl = document.getElementById('totalCoinsDisplay');
     const historyContainer = document.getElementById('coinHistoryContainer');
 
-    // LeetCode Elements
-    const leetcodeConnectView = document.getElementById('leetcodeConnectView');
-    const leetcodeSyncView = document.getElementById('leetcodeSyncView');
-    const lcStatsView = document.getElementById('lcStatsView');
-    const leetcodeUsernameInput = document.getElementById('leetcodeUsernameInput');
-    const connectLeetcodeBtn = document.getElementById('connectLeetcodeBtn');
-    const syncLeetcodeBtn = document.getElementById('syncLeetcodeBtn');
-    const displayLeetcodeUsername = document.getElementById('displayLeetcodeUsername');
-    const lastSyncedText = document.getElementById('lastSyncedText');
-    const easyCountEl = document.getElementById('easySolvedCount');
-    const mediumCountEl = document.getElementById('mediumSolvedCount');
-    const hardCountEl = document.getElementById('hardSolvedCount');
     const profileAvatar = document.getElementById('profileAvatar');
     const viewAllHistoryBtn = document.getElementById('viewAllHistoryBtn');
     const historyModal = document.getElementById('historyModal');
@@ -43,17 +31,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const passwordError = document.getElementById('passwordError');
     const submitSpinner = document.getElementById('submitSpinner');
 
-    // Query Elements
-    const queriesList = document.getElementById('queriesList');
-    const openNewQueryBtn = document.getElementById('openNewQueryBtn');
-    const newQueryModal = document.getElementById('newQueryModal');
-    const newQueryModalContent = document.getElementById('newQueryModalContent');
-    const closeNewQueryModal = document.getElementById('closeNewQueryModal');
-    const submitQueryBtn = document.getElementById('submitQueryBtn');
-    const querySubjectInput = document.getElementById('querySubjectInput');
-    const queryContentInput = document.getElementById('queryContentInput');
-    const queryError = document.getElementById('queryError');
-    const querySubmitSpinner = document.getElementById('querySubmitSpinner');
 
     // Check-in Elements
     const checkInCard = document.getElementById('checkInCard');
@@ -113,27 +90,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
     }
 
-    function renderQueryCard(query) {
-        const date = new Date(query.updatedAt || query.createdAt);
-        const statusClass = query.status === 'OPEN' ? 'text-[#FF6B00] bg-[#FF6B00]/10 border-[#FF6B00]/20' : 'text-gray-500 bg-white/5 border-white/10';
-        
-        return `
-            <div class="transaction-card p-4 flex items-center justify-between group cursor-pointer" onclick="window.location.href='messages.html?id=${query.id}'">
-                <div class="flex-1">
-                    <div class="flex items-center gap-2 mb-1">
-                        <h4 class="text-xs font-black text-white group-hover:text-[#FF6B00] transition-colors">${query.subject}</h4>
-                        <span class="px-2 py-0.5 rounded-full text-[8px] font-black uppercase border ${statusClass}">${query.status}</span>
-                    </div>
-                    <p class="text-[9px] font-bold text-gray-600 uppercase tracking-widest">
-                        Last Activity: ${date.toLocaleString()}
-                    </p>
-                </div>
-                <div class="text-gray-600 group-hover:text-[#FF6B00] transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                </div>
-            </div>
-        `;
-    }
 
 
 
@@ -194,31 +150,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
 
-            // Fetch LeetCode status
-            try {
-                const lcProfile = await api.getLeetcodeProfile();
-                if (lcProfile) {
-                    leetcodeConnectView.classList.add('hidden');
-                    leetcodeSyncView.classList.remove('hidden');
-                    lcStatsView.classList.remove('hidden');
-                    displayLeetcodeUsername.textContent = lcProfile.leetcodeUsername;
-                    displayLeetcodeUsername.classList.remove('opacity-0');
-                    lastSyncedText.textContent = lcProfile.lastSyncedAt ?
-                        `Last Synced: ${new Date(lcProfile.lastSyncedAt).toLocaleString()}` :
-                        'Never synced';
-                    easyCountEl.textContent = lcProfile.easySolved || 0;
-                    mediumCountEl.textContent = lcProfile.mediumSolved || 0;
-                    hardCountEl.textContent = lcProfile.hardSolved || 0;
-                } else {
-                    leetcodeConnectView.classList.remove('hidden');
-                    leetcodeSyncView.classList.add('hidden');
-                    lcStatsView.classList.add('hidden');
-                }
-            } catch (e) {
-                leetcodeConnectView.classList.remove('hidden');
-                leetcodeSyncView.classList.add('hidden');
-                lcStatsView.classList.add('hidden');
-            }
 
             } catch (error) {
                 console.error('Error loading profile:', error);
@@ -231,28 +162,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
 
-            // Load Queries
-            await loadQueries();
     }
 
-    async function loadQueries() {
-        if (!queriesList) return;
-        try {
-            const queries = await api.getMyQueries();
-            if (!queries || queries.length === 0) {
-                queriesList.innerHTML = `
-                    <div class="text-center py-8 text-gray-700">
-                        <p class="text-[10px] font-bold uppercase tracking-widest">No queries submitted yet</p>
-                    </div>
-                `;
-            } else {
-                queriesList.innerHTML = queries.map(renderQueryCard).join('');
-            }
-        } catch (error) {
-            console.error('Error loading queries:', error);
-            queriesList.innerHTML = `<div class="text-center py-4 text-red-500 text-[10px]">Failed to load queries</div>`;
-        }
-    }
 
     // Modal Control
     function toggleModal(show) {
@@ -376,117 +287,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Connect Button Handler
-    if (connectLeetcodeBtn) {
-        connectLeetcodeBtn.addEventListener('click', async () => {
-            const username = leetcodeUsernameInput.value.trim();
-            if (!username) {
-                alert('Please enter a LeetCode username');
-                return;
-            }
 
-            connectLeetcodeBtn.disabled = true;
-            connectLeetcodeBtn.textContent = 'Connecting...';
-
-            try {
-                await api.connectLeetcode(username);
-                await loadProfileData();
-            } catch (error) {
-                alert(error.message || 'Failed to connect LeetCode profile');
-            } finally {
-                connectLeetcodeBtn.disabled = false;
-                connectLeetcodeBtn.textContent = 'Connect';
-            }
-        });
-    }
-
-    // Sync Button Handler
-    if (syncLeetcodeBtn) {
-        syncLeetcodeBtn.addEventListener('click', async () => {
-            const syncIcon = document.getElementById('syncIcon');
-            syncLeetcodeBtn.disabled = true;
-            if (syncIcon) syncIcon.classList.add('animate-spin');
-
-            try {
-                await api.syncLeetcode();
-                await loadProfileData();
-            } catch (error) {
-                alert(error.message || 'Failed to sync LeetCode profile');
-            } finally {
-                syncLeetcodeBtn.disabled = false;
-                if (syncIcon) syncIcon.classList.remove('animate-spin');
-            }
-        });
-    }
-
-    // New Query Modal Control
-    function toggleQueryModal(show) {
-        if (!newQueryModal) return;
-        if (show) {
-            newQueryModal.classList.remove('hidden');
-            setTimeout(() => {
-                if (newQueryModalContent) {
-                    newQueryModalContent.classList.remove('scale-95');
-                    newQueryModalContent.classList.add('scale-100');
-                }
-            }, 10);
-            querySubjectInput.value = '';
-            queryContentInput.value = '';
-            queryError.classList.add('hidden');
-        } else {
-            if (newQueryModalContent) {
-                newQueryModalContent.classList.remove('scale-100');
-                newQueryModalContent.classList.add('scale-95');
-            }
-            setTimeout(() => {
-                newQueryModal.classList.add('hidden');
-            }, 300);
-        }
-    }
-
-    if (openNewQueryBtn) {
-        openNewQueryBtn.addEventListener('click', () => toggleQueryModal(true));
-    }
-
-    if (closeNewQueryModal) {
-        closeNewQueryModal.addEventListener('click', () => toggleQueryModal(false));
-    }
-
-    if (newQueryModal) {
-        newQueryModal.addEventListener('click', (e) => {
-            if (e.target === newQueryModal) toggleQueryModal(false);
-        });
-    }
-
-    if (submitQueryBtn) {
-        submitQueryBtn.addEventListener('click', async () => {
-            const subject = querySubjectInput.value.trim();
-            const content = queryContentInput.value.trim();
-
-            if (!subject || !content) {
-                queryError.textContent = 'Please fill all fields';
-                queryError.classList.remove('hidden');
-                return;
-            }
-
-            submitQueryBtn.disabled = true;
-            querySubmitSpinner.classList.remove('hidden');
-            queryError.classList.add('hidden');
-
-            try {
-                await api.submitQuery(subject, content);
-                toggleQueryModal(false);
-                await loadQueries();
-                alert('Query submitted successfully! Admin will respond soon.');
-            } catch (error) {
-                queryError.textContent = error.message || 'Failed to submit query';
-                queryError.classList.remove('hidden');
-            } finally {
-                submitQueryBtn.disabled = false;
-                querySubmitSpinner.classList.add('hidden');
-            }
-        });
-    }
 
     // Check-in Logic
     function handleCheckInState(lastCheckIn) {

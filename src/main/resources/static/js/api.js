@@ -182,19 +182,6 @@ const api = {
     getLessons(topicId) { return this.request(`/lessons?topicId=${topicId}`); },
     getLesson(id) { return this.request(`/lessons/${id}`); },
 
-    // LeetCode
-    connectLeetcode(username) {
-        return this.request('/leetcode/connect', {
-            method: 'POST',
-            body: JSON.stringify({ username })
-        });
-    },
-    syncLeetcode() {
-        return this.request('/leetcode/sync', { method: 'POST' });
-    },
-    getLeetcodeProfile() {
-        return this.request('/leetcode/profile');
-    },
 
     // Notifications
     getNotifications() { return this.request('/notifications'); },
@@ -227,24 +214,5 @@ const api = {
         return null;
     },
 
-    // Queries
-    submitQuery(subject, content) {
-        return this.request('/queries', {
-            method: 'POST',
-            body: JSON.stringify({ subject, content })
-        });
-    },
-    getMyQueries() { return this.request('/queries/my'); },
-    getQueryMessages(id) { return this.request(`/queries/${id}/messages`); },
-    replyToQuery(id, content) {
-        return this.request(`/queries/${id}/reply`, {
-            method: 'POST',
-            body: JSON.stringify({ content })
-        });
-    },
-    getAllQueries() { return this.request('/admin/queries/all'); },
-    resolveQuery(id) {
-        return this.request(`/admin/queries/${id}/resolve`, { method: 'POST' });
-    }
 };
 
