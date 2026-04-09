@@ -43,9 +43,6 @@ public class AdminPanelService {
     private final FriendRequestRepository friendRequestRepository;
     private final NotificationService notificationService;
     private final NotificationRepository notificationRepository;
-    private final LeetcodeProfileRepository leetcodeProfileRepository;
-    private final SupportQueryRepository supportQueryRepository;
-    private final QueryMessageRepository queryMessageRepository;
     private final AppSettingRepository appSettingRepository;
     private final Environment environment;
     private final JwtUtil jwtUtil;
@@ -223,7 +220,6 @@ public class AdminPanelService {
                 "username", user.getUsername(),
                 "email", user.getEmail(),
                 "displayName", safeName(user),
-                "leetcodeUsername", user.getLeetcodeUsername() != null ? user.getLeetcodeUsername() : "",
                 "role", user.getRole(),
                 "coins", user.getCoins() != null ? user.getCoins() : 0,
                 "section", user.getSection() != null ? user.getSection() : "-",
@@ -243,16 +239,6 @@ public class AdminPanelService {
         // Cascading deletion of all user data
         submissionRepository.deleteByUserId(userId);
         battleParticipantRepository.deleteByUserId(userId);
-        leetcodeProfileRepository.deleteByUserId(userId);
-        
-        // Use existing deleteByUser for BattleQueue
-        battleQueueRepository.deleteByUser(user);
-        
-        coinTransactionRepository.deleteByUserId(userId);
-        eventBidRepository.deleteByUserId(userId);
-        queryMessageRepository.deleteBySenderId(userId);
-        queryMessageRepository.deleteByQueryUserId(userId);
-        supportQueryRepository.deleteByUserId(userId);
         notificationRepository.deleteByUser_Id(userId);
         
         // Friend Requests: user can be requester or receiver
@@ -672,54 +658,6 @@ public class AdminPanelService {
         return Map.of("ok", true);
     }
 
-    public List<SupportQuery> getSupportQueries() {
-        return supportQueryRepository.findAllByOrderByUpdatedAtDesc();
-    }
-
-    @Transactional
-    public void resolveSupportQuery(Long id) {
-        SupportQuery query = supportQueryRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Query not found"));
-        query.setStatus("RESOLVED");
-        supportQueryRepository.save(query);
-    }
-
-    public List<QueryMessage> getQueryMessages(Long queryId) {
-        SupportQuery query = supportQueryRepository.findById(queryId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Query not found"));
-        return queryMessageRepository.findByQueryOrderByCreatedAtAsc(query);
-    }
-
-    @Transactional
-    public QueryMessage adminReply(Long queryId, String token, String content) {
-        verifyAdminSession(token);
-        String username = jwtUtil.extractUsername(token);
-        User admin = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid admin session"));
-
-        SupportQuery query = supportQueryRepository.findById(queryId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Query not found"));
-
-        QueryMessage message = QueryMessage.builder()
-                .query(query)
-                .sender(admin)
-                .content(content)
-                .build();
-
-        query.setStatus("OPEN");
-        supportQueryRepository.save(query);
-        
-        // Notify user
-        notificationService.sendNotification(
-                query.getUser(),
-                "SUPPORT_REPLY",
-                "Support Reply",
-                "An admin has replied to your query: " + query.getSubject(),
-                "messages.html?id=" + query.getId()
-        );
-        
-        return queryMessageRepository.save(message);
-    }
 
     public User adjustPoints(Long userId, Integer delta) {
         User u = userRepository.findById(userId)

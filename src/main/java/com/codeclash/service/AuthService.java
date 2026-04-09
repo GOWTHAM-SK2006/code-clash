@@ -17,7 +17,6 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-    private final LeetcodeSyncService leetcodeSyncService;
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
@@ -31,20 +30,11 @@ public class AuthService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .displayName(request.getDisplayName() != null ? request.getDisplayName() : request.getUsername())
-                .leetcodeUsername(request.getLeetcodeUsername())
                 .section(request.getSection() != null ? request.getSection().toUpperCase() : null)
                 .build();
 
         userRepository.save(user);
 
-        // Auto-connect LeetCode profile if username was provided
-        if (request.getLeetcodeUsername() != null && !request.getLeetcodeUsername().trim().isEmpty()) {
-            try {
-                leetcodeSyncService.connectProfile(user.getUsername(), request.getLeetcodeUsername().trim());
-            } catch (Exception e) {
-                // Don't fail registration if LeetCode connect fails
-            }
-        }
 
         String token = jwtUtil.generateToken(user.getUsername());
         return AuthResponse.builder()
@@ -63,20 +53,6 @@ public class AuthService {
             throw new RuntimeException("Invalid credentials");
         }
 
-        // Auto-connect/sync LeetCode if username exists
-        if (user.getLeetcodeUsername() != null && !user.getLeetcodeUsername().trim().isEmpty()) {
-            try {
-                Optional<com.codeclash.entity.LeetcodeProfile> profile = leetcodeSyncService.getProfile(user.getUsername());
-                if (profile.isEmpty()) {
-                    leetcodeSyncService.connectProfile(user.getUsername(), user.getLeetcodeUsername().trim());
-                } else if (profile.get().getLastSyncedAt() == null) {
-                    // Force a sync if it has never been synced
-                    leetcodeSyncService.syncProfile(user.getUsername());
-                }
-            } catch (Exception e) {
-                // Ignore sync errors during login to avoid blocking access
-            }
-        }
 
         String token = jwtUtil.generateToken(user.getUsername());
         return AuthResponse.builder()

@@ -3,8 +3,6 @@ package com.codeclash.controller;
 import com.codeclash.dto.AdminChangePasswordRequest;
 import com.codeclash.dto.AdminPasswordResetRequest;
 import com.codeclash.entity.Problem;
-import com.codeclash.entity.SupportQuery;
-import com.codeclash.entity.QueryMessage;
 import com.codeclash.entity.User;
 import com.codeclash.service.AdminPanelService;
 import lombok.RequiredArgsConstructor;
@@ -255,35 +253,4 @@ public class AdminController {
         return adminPanelService.changeAdminPassword(token, request.getCurrentPassword(), request.getNewPassword());
     }
 
-    @GetMapping("/queries/all")
-    public List<SupportQuery> getAllQueries(@RequestHeader("X-Admin-Session") String token) {
-        adminPanelService.verifyAdminSession(token);
-        return adminPanelService.getSupportQueries();
-    }
-
-    @GetMapping("/queries/{id}/messages")
-    public List<QueryMessage> getQueryMessages(
-            @RequestHeader("X-Admin-Session") String token,
-            @PathVariable Long id) {
-        adminPanelService.verifyAdminSession(token);
-        return adminPanelService.getQueryMessages(id);
-    }
-
-    @PostMapping("/queries/{id}/reply")
-    public QueryMessage replyToQuery(
-            @RequestHeader("X-Admin-Session") String token,
-            @PathVariable Long id,
-            @RequestBody Map<String, String> body) {
-        adminPanelService.verifyAdminSession(token);
-        return adminPanelService.adminReply(id, token, body.get("content"));
-    }
-
-    @PostMapping("/queries/{id}/resolve")
-    public Map<String, Object> resolveQuery(
-            @RequestHeader("X-Admin-Session") String token,
-            @PathVariable Long id) {
-        adminPanelService.verifyAdminSession(token);
-        adminPanelService.resolveSupportQuery(id);
-        return Map.of("ok", true, "message", "Query resolved successfully");
-    }
 }
