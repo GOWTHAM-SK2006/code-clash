@@ -259,7 +259,7 @@ function cancelSearch() {
 
 /* --- Custom Match Lobby Logic --- */
 let currentLobbyBattleId = null;
-let currentLobbyMode = '2v2'; // Default
+let currentLobbyMode = (new URLSearchParams(window.location.search)).get('mode') || '2v2';
 let currentInviteType = 'TEAMMATE';
 
 async function initCustomLobby() {
@@ -273,6 +273,17 @@ async function initCustomLobby() {
         lobby.style.display = 'block';
     }
     if (defaultLobby) defaultLobby.style.display = 'none';
+
+    // Sync button states
+    const btn1v1 = document.getElementById('modeBtn1v1');
+    const btn2v2 = document.getElementById('modeBtn2v2');
+    if (currentLobbyMode === '1v1') {
+        if (btn1v1) btn1v1.classList.add('bg-[#FF6B00]', 'text-white');
+        if (btn2v2) btn2v2.classList.remove('bg-[#FF6B00]', 'text-white');
+    } else {
+        if (btn2v2) btn2v2.classList.add('bg-[#FF6B00]', 'text-white');
+        if (btn1v1) btn1v1.classList.remove('bg-[#FF6B00]', 'text-white');
+    }
 
     try {
         // Create initial lobby
