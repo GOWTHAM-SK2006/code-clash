@@ -15,7 +15,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmail(String email);
 
-    boolean existsByLeetcodeUsername(String leetcodeUsername);
 
     List<User> findAllByOrderByCoinsDesc();
 
