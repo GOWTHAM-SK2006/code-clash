@@ -9,13 +9,16 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 
 @Controller
+@AllArgsConstructor
 public class BattleActionController {
 
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+
     @MessageMapping("/battle/{id}/sync")
-    @SendTo("/topic/battle/{id}/code")
-    public CodeSyncMessage syncCode(@DestinationVariable Long id, CodeSyncMessage message) {
-        // Broadcast code changes to all members of the team (or everyone in battle)
-        return message;
+    public void syncCode(@DestinationVariable Long id, CodeSyncMessage message) {
+        // Broadcast code changes ONLY to members of the same team
+        String topic = "/topic/battle/" + id + "/team/" + message.getTeamId() + "/code";
+        messagingTemplate.convertAndSend(topic, message);
     }
 
     @Data

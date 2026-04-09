@@ -1104,35 +1104,82 @@ function initWebSocket() {
             console.log('[WebSocket] Status Update Received:', data);
             
             if (data.status === 'FINISHED' || data.status === 'CANCELLED') {
-                // IMPORTANT: Show result with ENRICHED broadcast data immediately for maximum speed
-                // The broadcast now contains 'problem' info for coin calculation
                 showResult(data);
             }
         });
+
+        // --- Real-time SHARED EDITOR sync (teammate collaboration) ---
+        if (userTeamId) {
+            stompClient.subscribe(`/topic/battle/${currentBattleId}/team/${userTeamId}/code`, (message) => {
+                const data = JSON.parse(message.body);
+                const currentUser = api.getUser();
+                
+                // Avoid applying our own changes back to us
+                if (data.sender !== currentUser?.username) {
+                    applyRemoteCode(data.code, data.language);
+                }
+            });
+        }
+
     }, (err) => {
         console.error('WebSocket connection failed:', err);
-        // Fallback to polling or retry logic if needed
     });
 }
 
-// Debounce code sync to avoid flooding server
-let syncTimeout = null;
+function applyRemoteCode(code, language) {
+    if (!monacoEditor || isRemoteChange) return;
+
+    // Use flag to prevent local change listener from firing again
+    isRemoteChange = true;
+    try {
+        const model = monacoEditor.getModel();
+        if (model && model.getValue() !== code) {
+            // Save state
+            const selection = monacoEditor.getSelection();
+            const scroll = monacoEditor.getScrollTop();
+            
+            // Apply update
+            model.setValue(code);
+            
+            // Restore state
+            if (selection) monacoEditor.setSelection(selection);
+            monacoEditor.setScrollTop(scroll);
+        }
+    } catch (e) {
+        console.error('Failed to apply remote code:', e);
+    } finally {
+        isRemoteChange = false;
+    }
+}
+
+// Throttle code sync (100ms for "Ultra-fast" real-time feel)
+let lastSyncTime = 0;
+const SYNC_THROTTLE_MS = 100;
+
 function syncCodeWithTeam() {
     if (!stompClient || !stompClient.connected) return;
     
-    if (syncTimeout) clearTimeout(syncTimeout);
-    syncTimeout = setTimeout(() => {
-        const code = getEditorCode();
-        const language = getSelectedLanguage();
-        const currentUser = api.getUser();
-        
-        stompClient.send(`/app/battle/${currentBattleId}/sync`, {}, JSON.stringify({
-            sender: currentUser?.username,
-            code: code,
-            language: language,
-            teamId: userTeamId
-        }));
-    }, 500); // 500ms debounce
+    // Use throttle instead of debounce for "Smooth" real-time collab
+    const now = Date.now();
+    if (now - lastSyncTime < SYNC_THROTTLE_MS) {
+        if (syncTimeout) clearTimeout(syncTimeout);
+        syncTimeout = setTimeout(syncCodeWithTeam, SYNC_THROTTLE_MS);
+        return;
+    }
+    lastSyncTime = now;
+
+    const code = getEditorCode();
+    const language = getSelectedLanguage();
+    const currentUser = api.getUser();
+    
+    if (!userTeamId) return;
+
+    stompClient.send(`/app/battle/${currentBattleId}/sync`, {}, JSON.stringify({
+        sender: currentUser?.username,
+        code: code,
+        language: language,
+        teamId: userTeamId
+    }));
 }
 
 function renderTeamParticipants(participants) {
