@@ -12,10 +12,14 @@
 <body class="dashboard-page">
     <nav class="navbar" id="navbar"></nav>
 
-    <main class="page-content">
+    <main class="page-content gaming-theme">
+        <!-- Digital Grid Overlay -->
+        <div class="bg-grid-overlay"></div>
+        
         <!-- Decorative Energy Blooms -->
-        <div class="energy-bloom" style="width: 400px; height: 400px; top: 10%; right: -100px; background: rgba(255, 107, 0, 0.15);"></div>
-        <div class="energy-bloom" style="width: 300px; height: 300px; bottom: 10%; left: -50px; background: rgba(102, 126, 234, 0.15);"></div>
+        <div class="energy-bloom bloom-orange"></div>
+        <div class="energy-bloom bloom-blue"></div>
+        <div class="energy-bloom bloom-purple"></div>
         
         <div class="container">
             <div class="page-header dashboard-header">
@@ -41,6 +45,9 @@
 
             <div class="dashboard-actions">
                 <div class="card card-glow action-card checkin-card" id="checkInCard">
+                    <!-- Lightning Animation Layers -->
+                    <div class="lightning-container" id="lightningContainer"></div>
+                    
                     <span class="action-icon">🪙</span>
                     <h3>Daily Check-in</h3>
                     <p id="checkInStatus">Claim your daily 30 coins reward!</p>

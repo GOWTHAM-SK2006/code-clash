@@ -44,11 +44,19 @@
         const timerContainer = document.getElementById('checkInTimer');
         const timerSpan = timerContainer.querySelector('span');
         const statusText = document.getElementById('checkInStatus');
+        const card = document.getElementById('checkInCard');
+
+        let lightningInterval;
 
         if (timerStr === 'READY') {
             claimBtn.classList.remove('btn-disabled');
             timerContainer.classList.add('hidden');
             statusText.textContent = "Your daily 30 coins reward is waiting!";
+            
+            // Start lightning strikes when ready
+            lightningInterval = setInterval(() => {
+                if (Math.random() > 0.7) triggerLightningStrike();
+            }, 2000);
         } else {
             claimBtn.classList.add('btn-disabled');
             timerContainer.classList.remove('hidden');
@@ -57,29 +65,41 @@
                 claimBtn.classList.remove('btn-disabled');
                 timerContainer.classList.add('hidden');
                 statusText.textContent = "Your daily 30 coins reward is waiting!";
+                
+                // Start lightning strikes when countdown finishes
+                lightningInterval = setInterval(() => {
+                    if (Math.random() > 0.7) triggerLightningStrike();
+                }, 2000);
             });
         }
 
         claimBtn.addEventListener('click', async () => {
             try {
                 claimBtn.classList.add('btn-disabled');
+                if (lightningInterval) clearInterval(lightningInterval);
+
                 const res = await api.checkIn();
                 
+                // Screen Shake
+                document.body.classList.add('shake');
+                setTimeout(() => document.body.classList.remove('shake'), 500);
+
                 // Play sound
                 const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3');
-                audio.play().catch(() => {}); // Ignore if browser blocks auto-play
+                audio.play().catch(() => {});
 
                 // Trigger Animation
                 const btnRect = claimBtn.getBoundingClientRect();
                 const targetRect = document.getElementById('totalCoins').getBoundingClientRect();
                 triggerCoinAnimation(btnRect, targetRect);
 
-                // Update UI after small delay to sync with animation
+                // Update UI after small delay and trigger lightning blast
                 setTimeout(() => {
+                    for(let i=0; i<5; i++) setTimeout(triggerLightningStrike, i * 100);
+                    
                     const currentCoins = parseInt(document.getElementById('totalCoins').textContent.replace(/,/g, '')) || 0;
                     animateValue('totalCoins', currentCoins, currentCoins + 30, 1000);
                     
-                    // Reset timer to 12h
                     initCheckIn("12:00:00");
                 }, 800);
 
@@ -88,6 +108,30 @@
                 claimBtn.classList.remove('btn-disabled');
             }
         });
+    }
+
+    function triggerLightningStrike() {
+        const container = document.getElementById('lightningContainer');
+        if (!container) return;
+
+        const bolt = document.createElement('div');
+        bolt.className = 'lightning-bolt';
+        
+        const width = 2 + Math.random() * 3;
+        const height = 40 + Math.random() * 60;
+        const left = Math.random() * 100;
+        const top = Math.random() * 100;
+        const rotate = Math.random() * 360;
+
+        bolt.style.width = `${width}px`;
+        bolt.style.height = `${height}px`;
+        bolt.style.left = `${left}%`;
+        bolt.style.top = `${top}%`;
+        bolt.style.transform = `rotate(${rotate}deg)`;
+        bolt.style.animation = `lightning-flash 0.2s ease-out forwards`;
+
+        container.appendChild(bolt);
+        setTimeout(() => bolt.remove(), 300);
     }
 
     function startCountdown(durationStr, display, onComplete) {
@@ -111,15 +155,14 @@
 
     function triggerCoinAnimation(fromRect, toRect) {
         const container = document.getElementById('coinContainer');
-        const coinCount = 15;
+        const coinCount = 25; // Increased for more intense feel
 
         for (let i = 0; i < coinCount; i++) {
             const coin = document.createElement('div');
             coin.className = 'coin-particle';
             
-            // Random burst offset
-            const tx = (Math.random() - 0.5) * 200;
-            const ty = (Math.random() - 0.5) * 200;
+            const tx = (Math.random() - 0.5) * 400; // Wider burst
+            const ty = (Math.random() - 0.5) * 400;
             
             coin.style.setProperty('--tx', `${tx}px`);
             coin.style.setProperty('--ty', `${ty}px`);
@@ -129,13 +172,12 @@
             coin.style.animation = `coin-burst 0.5s ease-out forwards`;
             container.appendChild(coin);
 
-            // After burst, fly to target
             setTimeout(() => {
                 const startX = fromRect.left + fromRect.width / 2 + tx;
                 const startY = fromRect.top + fromRect.height / 2 + ty;
                 
                 coin.style.animation = 'none';
-                coin.offsetHeight; // trigger reflow
+                coin.offsetHeight;
                 
                 coin.style.setProperty('--sx', `0px`);
                 coin.style.setProperty('--sy', `0px`);
@@ -144,7 +186,7 @@
                 
                 coin.style.left = `${startX}px`;
                 coin.style.top = `${startY}px`;
-                coin.style.animation = `coin-fly ${0.6 + Math.random() * 0.4}s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards`;
+                coin.style.animation = `coin-fly ${0.5 + Math.random() * 0.5}s cubic-bezier(0.16, 1, 0.3, 1) forwards`;
                 
                 setTimeout(() => coin.remove(), 1000);
             }, 500);

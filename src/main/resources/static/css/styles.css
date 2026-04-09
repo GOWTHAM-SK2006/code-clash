@@ -1,5 +1,5 @@
 /* CodeClash Design System */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 
 :root {
     --bg-primary: #0F0F0F;
@@ -2327,4 +2327,146 @@ main > .container > .friends-section:nth-of-type(4) { animation-delay: 0.4s; }
     opacity: 0.5;
     pointer-events: none;
     filter: grayscale(1);
+}
+
+/* --- GAMING MASTERY OVERHAUL --- */
+
+.gaming-theme {
+    position: relative;
+    overflow-x: hidden;
+}
+
+.bg-grid-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background-image: 
+        linear-gradient(rgba(255, 107, 0, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 107, 0, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
+    mask-image: radial-gradient(circle at center, black, transparent 80%);
+    pointer-events: none;
+    animation: grid-drift 60s linear infinite;
+}
+
+@keyframes grid-drift {
+    from { background-position: 0 0; }
+    to { background-position: 1000px 1000px; }
+}
+
+.bloom-orange { top: 0; right: 0; width: 600px; height: 600px; background: radial-gradient(circle, rgba(255, 107, 0, 0.15) 0%, transparent 70%); }
+.bloom-blue { bottom: -100px; left: -100px; width: 500px; height: 500px; background: radial-gradient(circle, rgba(0, 209, 255, 0.1) 0%, transparent 70%); }
+.bloom-purple { top: 40%; left: 50%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(189, 0, 255, 0.08) 0%, transparent 70%); }
+
+.energy-bloom {
+    position: fixed;
+    z-index: -1;
+    filter: blur(80px);
+    animation: pulse-glow 8s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* Typography Overhaul */
+.gaming-theme h1, 
+.gaming-theme h3,
+.gaming-theme .stat-value {
+    font-family: 'Orbitron', sans-serif !important;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.page-header h1 {
+    font-size: 3.5rem;
+    background: linear-gradient(to bottom, #fff 30%, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 20px rgba(255, 107, 0, 0.3));
+}
+
+/* Tech Stat Cards */
+.stat-card {
+    position: relative;
+    clip-path: polygon(15px 0%, 100% 0%, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0% 100%, 0% 15px);
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 20px; height: 2px;
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent);
+}
+
+.stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0; width: 2px; height: 20px;
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent);
+}
+
+/* Lightning Animations */
+.lightning-container {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.lightning-bolt {
+    position: absolute;
+    background: #fff;
+    box-shadow: 0 0 15px #00D1FF, 0 0 30px #fff;
+    filter: blur(1px);
+    opacity: 0;
+}
+
+@keyframes lightning-flash {
+    0% { opacity: 0; }
+    5% { opacity: 1; }
+    10% { opacity: 0.2; }
+    15% { opacity: 0.8; }
+    20% { opacity: 0; }
+    100% { opacity: 0; }
+}
+
+/* Gaming Trigger Button */
+.btn-primary.btn-shimmer {
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 1px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(135deg, var(--accent) 0%, #FF2D00 100%);
+    box-shadow: 0 4px 0 #993300, 0 8px 15px rgba(0,0,0,0.4);
+    transition: all 0.1s;
+}
+
+.btn-primary.btn-shimmer:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #993300, 0 2px 5px rgba(0,0,0,0.4);
+}
+
+.btn-primary.btn-shimmer:hover {
+    filter: brightness(1.2);
+    box-shadow: 0 0 20px var(--accent-glow);
+}
+
+/* Screen Shake */
+@keyframes shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    20% { transform: translate(-3px, 0px) rotate(1deg); }
+    30% { transform: translate(3px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(1deg); }
+    50% { transform: translate(-1px, 2px) rotate(-1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(3px, 1px) rotate(-1deg); }
+    80% { transform: translate(-1px, -1px) rotate(1deg); }
+    90% { transform: translate(1px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+.shake {
+    animation: shake 0.5s;
+    animation-iteration-count: 1;
 }
