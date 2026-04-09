@@ -13,5 +13,5 @@ public interface BattleRepository extends JpaRepository<Battle, Long> {
     @org.springframework.data.jpa.repository.Query("UPDATE Battle b SET b.winnerId = NULL WHERE b.winnerId = :userId")
     void clearWinnerId(@org.springframework.data.repository.query.Param("userId") Long userId);
 
-    java.util.Optional<Battle> findFirstByModeAndStatusAndProblemDifficultyIgnoreCaseOrderByStartedAtAsc(String mode, String status, String difficulty);
+    java.util.Optional<Battle> findFirstByModeAndStatusAndProblemDifficultyIgnoreCaseAndIsCustomFalseOrderByStartedAtAsc(String mode, String status, String difficulty);
 }

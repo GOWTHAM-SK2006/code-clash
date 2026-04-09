@@ -378,7 +378,7 @@ function startLobbyPolling() {
             const required = (data.battle?.mode === '1v1') ? 2 : 4;
             const current = data.participants ? data.participants.length : 0;
 
-            if (data.battle?.status === 'ACTIVE' && current >= required) {
+            if ((data.battle?.status === 'ACTIVE' || data.battle?.status === 'MATCHED') && current >= required) {
                 window.location.href = `battle-room.html?battleId=${currentLobbyBattleId}`;
             }
         } catch (e) {}
