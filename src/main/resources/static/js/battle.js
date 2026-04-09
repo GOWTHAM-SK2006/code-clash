@@ -345,8 +345,12 @@ function updateLobbyUI(data) {
         slot.querySelector('.slot-avatar').textContent = '+';
         
         // Hide extra slots for 1v1
-        if (mode === '1v1' && i > 2) {
-            slot.style.display = 'none';
+        if (mode === '1v1') {
+            if (i === 1 || i === 3) {
+                slot.style.display = 'none';
+            } else {
+                slot.style.display = 'flex';
+            }
         } else {
             slot.style.display = 'flex';
         }
@@ -378,8 +382,15 @@ function updateLobbyUI(data) {
     });
 
     if (mode === '1v1') {
+        const t1Header = document.querySelector('#lobbySlotsContainer div:nth-child(1) p');
         const t2Header = document.querySelector('#lobbySlotsContainer div:nth-child(2) p');
-        if (t2Header) t2Header.textContent = 'Team 2 (Opponent)';
+        if (t1Header) t1Header.textContent = 'Your Slot';
+        if (t2Header) t2Header.textContent = 'Opponent Slot';
+    } else {
+        const t1Header = document.querySelector('#lobbySlotsContainer div:nth-child(1) p');
+        const t2Header = document.querySelector('#lobbySlotsContainer div:nth-child(2) p');
+        if (t1Header) t1Header.textContent = 'Team 1 (Your Team)';
+        if (t2Header) t2Header.textContent = 'Team 2 (Opponents)';
     }
 }
 
