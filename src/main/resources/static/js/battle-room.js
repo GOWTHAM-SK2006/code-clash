@@ -554,11 +554,12 @@ function showResult(result) {
     const isWinner = result.winningTeamId ? (result.winningTeamId === userTeamId) : (result.winnerId === user?.userId);
     const isDraw = (result.status === 'CANCELLED' || result.status === 'FINISHED') && !result.winnerId && !result.winningTeamId;
 
-    if (result.status === 'CANCELLED' && isWinner) {
+    if (isWinner) {
         theme = 'theme-success';
         icon = '🎉';
-        title = 'Win';
-        desc = 'Opponent left the match. Tactical victory secured!';
+        title = 'You Win';
+        const reward = result.problem?.difficulty === 'Hard' ? 60 : (result.problem?.difficulty === 'Medium' ? 40 : 30);
+        desc = `Mission Objective Secured! +${reward} Coins awarded.`;
     } else if (result.status === 'CANCELLED' && (tabSwitchForfeitTriggered || fullscreenForfeitTriggered)) {
         theme = 'theme-danger';
         icon = '😔';
@@ -568,18 +569,12 @@ function showResult(result) {
         theme = 'theme-accent';
         icon = '⏱️';
         title = 'Draw';
-        desc = 'Match time is over. No team managed to complete the challenge.';
+        desc = 'No team managed to complete the challenge in time.';
     } else if (result.status === 'CANCELLED') {
         theme = 'theme-danger';
         icon = '❌';
         title = 'Match Forfeited';
         desc = 'Team member left the match. The mission was aborted.';
-    } else if (isWinner) {
-        theme = 'theme-success';
-        icon = '🎉';
-        title = 'Win';
-        const reward = result.problem?.difficulty === 'Hard' ? 60 : (result.problem?.difficulty === 'Medium' ? 40 : 30);
-        desc = `Excellent work! Objective secured. +${reward} Coins awarded.`;
     } else if (result.winnerId || result.winningTeamId) {
         theme = 'theme-danger';
         icon = '😔';
@@ -603,20 +598,43 @@ function showResult(result) {
             <span class="result-icon-v2">${icon}</span>
             <h2 class="result-title-v2">${title}</h2>
             <p class="result-desc-v2">${desc}</p>
+            <div id="autoExitLabel" style="font-size: 0.8rem; margin-top: 10px; opacity: 0.7;">Auto-exiting to lobby in 5s...</div>
             <button onclick="window.location.href='battle-mode.html'" class="result-action-v2">
                 Back to Lobby
             </button>
         </div>
     `;
 
-    // Trigger confetti for winner
+    // Trigger High-Intensity Fireworks for winner
     if (theme === 'theme-success' && typeof confetti === 'function') {
-        confetti({
-            particleCount: 150,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ['#FFD700', '#FFA500', '#00C853']
-        });
+        const duration = 5 * 1000;
+        const animationEnd = Date.now() + duration;
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+
+        const randomInRange = (min, max) => Math.random() * (max - min) + min;
+
+        const interval = setInterval(() => {
+            const timeLeft = animationEnd - Date.now();
+            if (timeLeft <= 0) return clearInterval(interval);
+
+            const particleCount = 50 * (timeLeft / duration);
+            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+        }, 250);
+
+        // Auto-exit countdown
+        let countdown = 5;
+        const countdownInterval = setInterval(() => {
+            countdown -= 1;
+            const label = document.getElementById('autoExitLabel');
+            if (label) label.textContent = `Auto-exiting to lobby in ${countdown}s...`;
+            if (countdown <= 0) clearInterval(countdownInterval);
+        }, 1000);
+
+        // Final Redirect
+        setTimeout(() => {
+            window.location.href = 'battle-mode.html';
+        }, 5000);
     }
 }
 
