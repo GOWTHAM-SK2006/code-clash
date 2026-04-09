@@ -57,6 +57,14 @@
     }
 
     window.inviteFriend = async (friendId) => {
+        let rePingInterval = null;
+
+        const cleanup = () => {
+            if (rePingInterval) clearInterval(rePingInterval);
+            const p = document.querySelector('.hud-pulse-overlay');
+            if (p) p.remove();
+        };
+
         // Show pulse overlay
         const pulse = document.createElement('div');
         pulse.className = 'hud-pulse-overlay';
@@ -65,25 +73,33 @@
                 <div class="hud-pulse-loader"></div>
                 <div class="hud-pulse-text">Establishing Link...</div>
                 <p style="color:var(--text-secondary); margin-top:-1rem;">Waiting for friend to accept mission</p>
-                <button class="btn btn-ghost btn-sm" onclick="this.parentElement.parentElement.remove()" style="margin-top:1rem;">Cancel Request</button>
+                <button class="btn btn-ghost btn-sm" id="cancelInviteBtn" style="margin-top:1rem;">Cancel Request</button>
             </div>
         `;
         document.body.appendChild(pulse);
 
-        try {
-            const res = await api.inviteTeamBattle(friendId);
-            // We don't redirect here anymore. 
-            // The global WebSocket listener in auth.js will handle the redirect 
-            // when the friend accepts.
-            
-            // If we actually returned an error or something else...
-            if (res.error) {
-                pulse.remove();
-                showSystemHUD(res.error, 'error');
+        document.getElementById('cancelInviteBtn').onclick = cleanup;
+
+        const performPing = async () => {
+            try {
+                const res = await api.inviteTeamBattle(friendId);
+                if (res.error) {
+                    showSystemHUD(res.error, 'error');
+                    cleanup();
+                }
+            } catch (err) {
+                showSystemHUD(err.message, 'error');
+                cleanup();
             }
-        } catch (err) {
-            pulse.remove();
-            showSystemHUD(err.message, 'error');
-        }
+        };
+
+        // Initial ping
+        await performPing();
+
+        // Repeated pings every 10 seconds
+        rePingInterval = setInterval(performPing, 10000);
+
+        // Listen for global redirect (from auth.js)
+        window.addEventListener('beforeunload', cleanup);
     };
 })();

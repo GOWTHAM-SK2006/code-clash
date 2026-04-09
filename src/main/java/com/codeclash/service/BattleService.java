@@ -219,12 +219,12 @@ public class BattleService {
                         throw new RuntimeException("Friend is currently offline");
                 }
 
-                // Check for existing pending invite
-                Optional<BattleInvite> existing = inviteRepository
-                                .findFirstBySenderAndReceiverAndStatusOrderByCreatedAtDesc(sender, friend, "PENDING");
-                if (existing.isPresent()) {
-                        throw new RuntimeException("You already have a pending invite sent to this friend");
-                }
+                // Check for existing pending invite - REMOVED to allow re-pings
+                // Optional<BattleInvite> existing = inviteRepository
+                //                 .findFirstBySenderAndReceiverAndStatusOrderByCreatedAtDesc(sender, friend, "PENDING");
+                // if (existing.isPresent()) {
+                //         throw new RuntimeException("You already have a pending invite sent to this friend");
+                // }
 
                 BattleInvite invite = BattleInvite.builder()
                                 .sender(sender)
