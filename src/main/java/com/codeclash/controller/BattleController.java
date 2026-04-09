@@ -72,7 +72,17 @@ public class BattleController {
         String username = auth.getName();
         Long friendId = request.get("friendId");
         try {
-            return ResponseEntity.ok(battleService.inviteToTeamBattle(username, friendId));
+            return ResponseEntity.ok(battleService.sendBattleInvite(username, friendId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", getSafeMessage(e)));
+        }
+    }
+
+    @PostMapping("/invites/{id}/accept")
+    public ResponseEntity<?> acceptInvite(@PathVariable Long id, Authentication auth) {
+        String username = auth.getName();
+        try {
+            return ResponseEntity.ok(battleService.acceptBattleInvite(username, id));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", getSafeMessage(e)));
         }

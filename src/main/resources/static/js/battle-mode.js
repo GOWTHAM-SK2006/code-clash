@@ -34,13 +34,19 @@
             friendList.innerHTML = friends.map(friend => `
                 <div class="friend-item">
                     <div class="friend-info">
-                        <span class="friend-avatar">${friend.displayName ? friend.displayName[0] : friend.username[0]}</span>
+                        <div class="friend-avatar-container">
+                            <span class="friend-avatar">${friend.displayName ? friend.displayName[0] : friend.username[0]}</span>
+                            <span class="status-indicator ${friend.isOnline ? 'online' : 'offline'}"></span>
+                        </div>
                         <div class="friend-details">
                             <span class="friend-name">${friend.displayName || friend.username}</span>
-                            <span class="friend-username">@${friend.username}</span>
+                            <span class="status-text">${friend.isOnline ? 'Active Now' : 'Offline'}</span>
                         </div>
                     </div>
-                    <button class="btn btn-primary btn-sm" onclick="inviteFriend(${friend.userId})">Invite</button>
+                    ${friend.isOnline 
+                        ? `<button class="btn btn-primary btn-sm" onclick="inviteFriend(${friend.userId})">Invite</button>`
+                        : `<button class="btn btn-disabled btn-sm" disabled>Invite</button>`
+                    }
                 </div>
             `).join('');
 

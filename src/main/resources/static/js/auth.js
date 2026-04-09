@@ -395,3 +395,96 @@ function showAlert(id, message, type = 'error') {
     el.style.display = 'block';
     setTimeout(() => { el.style.display = 'none'; }, 5000);
 }
+
+/* --- Real-time Battle Invitations --- */
+let globalStompClient = null;
+
+function initGlobalWebSocket() {
+    if (!api.isLoggedIn() || globalStompClient) return;
+
+    // Load SockJS and Stomp dynamically if not present
+    if (typeof SockJS === 'undefined' || typeof Stomp === 'undefined') {
+        const sockScript = document.createElement('script');
+        sockScript.src = 'https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js';
+        const stompScript = document.createElement('script');
+        stompScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js';
+        
+        document.head.appendChild(sockScript);
+        document.head.appendChild(stompScript);
+
+        const checkReady = setInterval(() => {
+            if (typeof SockJS !== 'undefined' && typeof Stomp !== 'undefined') {
+                clearInterval(checkReady);
+                connectGlobalWS();
+            }
+        }, 500);
+    } else {
+        connectGlobalWS();
+    }
+}
+
+function connectGlobalWS() {
+    const user = api.getUser();
+    if (!user) return;
+
+    const socket = new SockJS('/ws-codeclash');
+    globalStompClient = Stomp.over(socket);
+    globalStompClient.debug = null;
+
+    globalStompClient.connect({}, (frame) => {
+        globalStompClient.subscribe(`/topic/notifications/${user.username}`, (message) => {
+            const data = JSON.parse(message.body);
+            if (data.type === 'BATTLE_INVITE') {
+                showBattleInviteToast(data);
+            } else if (data.type === 'BATTLE_INVITE_ACCEPTED') {
+                window.location.href = `battle.html?id=${data.battleId}&mode=2v2`;
+            }
+        });
+    }, (err) => {
+        globalStompClient = null;
+        setTimeout(initGlobalWebSocket, 5000); // Retry
+    });
+}
+
+function showBattleInviteToast(data) {
+    const toast = document.createElement('div');
+    toast.className = 'battle-invite-toast';
+    toast.innerHTML = `
+        <div class="toast-content">
+            <div class="toast-icon">⚔️</div>
+            <div class="toast-details">
+                <span class="toast-title">Battle Request!</span>
+                <span class="toast-msg"><b>${data.fromDisplayName}</b> ${data.message}</span>
+            </div>
+        </div>
+        <div class="toast-actions">
+            <button class="btn btn-primary btn-sm" id="acceptInviteBtn-${data.inviteId}">Accept</button>
+            <button class="btn btn-ghost btn-sm" id="declineInviteBtn-${data.inviteId}">Decline</button>
+        </div>
+    `;
+    document.body.appendChild(toast);
+
+    document.getElementById(`acceptInviteBtn-${data.inviteId}`).onclick = async () => {
+        try {
+            const res = await api.acceptBattleInvite(data.inviteId);
+            if (res.battleId) {
+                window.location.href = `battle.html?id=${res.battleId}&mode=2v2`;
+            }
+        } catch (e) {
+            alert(e.message);
+            toast.remove();
+        }
+    };
+
+    document.getElementById(`declineInviteBtn-${data.inviteId}`).onclick = () => {
+        toast.remove();
+    };
+
+    // Auto-remove after 30s
+    setTimeout(() => { if (toast.parentElement) toast.remove(); }, 30000);
+}
+
+// Auto-init for authenticated pages
+if (api.isLoggedIn()) {
+    initGlobalWebSocket();
+}

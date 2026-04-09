@@ -13,4 +13,5 @@ public class FriendUserDto {
     private String displayName;
     private String relation;
     private Long requestId;
+    private Boolean isOnline;
 }

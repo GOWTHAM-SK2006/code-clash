@@ -41,6 +41,7 @@ public class FriendService {
                                 .displayName(resolveDisplayName(user))
                                 .relation("NONE")
                                 .requestId(null)
+                                .isOnline(isUserOnline(user))
                                 .build()))
                 .toList();
 
@@ -173,6 +174,7 @@ public class FriendService {
                     .displayName(resolveDisplayName(other))
                     .relation(relation)
                     .requestId(requestId)
+                    .isOnline(isUserOnline(other))
                     .build());
         }
 
@@ -206,5 +208,10 @@ public class FriendService {
     private boolean hasReachedFriendLimit(User user) {
         long friendCount = friendRequestRepository.countByUserAndStatus(user, FriendRequestStatus.ACCEPTED);
         return friendCount >= MAX_FRIENDS;
+    }
+
+    private boolean isUserOnline(User user) {
+        if (user == null || user.getLastActiveAt() == null) return false;
+        return user.getLastActiveAt().isAfter(java.time.LocalDateTime.now().minusMinutes(5));
     }
 }

@@ -14,9 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @Service
 public class BattleService {
@@ -33,6 +33,8 @@ public class BattleService {
         private final TemplateValidationService templateValidationService;
         private final ProblemService problemService;
         private final AdminPanelService adminPanelService;
+        private final BattleInviteRepository inviteRepository;
+        private final SimpMessagingTemplate messagingTemplate;
 
         public BattleService(BattleRepository battleRepository,
                         BattleParticipantRepository participantRepository,
@@ -43,7 +45,9 @@ public class BattleService {
                         DockerSandboxService dockerSandboxService,
                         TemplateValidationService templateValidationService,
                         ProblemService problemService,
-                        AdminPanelService adminPanelService) {
+                        AdminPanelService adminPanelService,
+                        BattleInviteRepository inviteRepository,
+                        SimpMessagingTemplate messagingTemplate) {
                 this.battleRepository = battleRepository;
                 this.participantRepository = participantRepository;
                 this.problemRepository = problemRepository;
@@ -54,6 +58,8 @@ public class BattleService {
                 this.templateValidationService = templateValidationService;
                 this.problemService = problemService;
                 this.adminPanelService = adminPanelService;
+                this.inviteRepository = inviteRepository;
+                this.messagingTemplate = messagingTemplate;
         }
 
         @Transactional
@@ -197,8 +203,99 @@ public class BattleService {
                 saveParticipant(battle, friend, 1);
 
                 return Map.of(
-                                "status", "waiting_for_opponents",
-                                "battleId", battle.getId());
+                                 "status", "waiting_for_opponents",
+                                 "battleId", battle.getId());
+        }
+
+        @Transactional
+        public Map<String, Object> sendBattleInvite(String requesterUsername, Long friendId) {
+                User sender = userRepository.findByUsername(requesterUsername)
+                                .orElseThrow(() -> new RuntimeException("User not found"));
+                User friend = userRepository.findById(friendId)
+                                .orElseThrow(() -> new RuntimeException("Friend not found"));
+
+                // Check if friend is online
+                if (!isUserOnline(friend)) {
+                        throw new RuntimeException("Friend is currently offline");
+                }
+
+                // Check for existing pending invite
+                Optional<BattleInvite> existing = inviteRepository
+                                .findFirstBySenderAndReceiverAndStatusOrderByCreatedAtDesc(sender, friend, "PENDING");
+                if (existing.isPresent()) {
+                        throw new RuntimeException("You already have a pending invite sent to this friend");
+                }
+
+                BattleInvite invite = BattleInvite.builder()
+                                .sender(sender)
+                                .receiver(friend)
+                                .status("PENDING")
+                                .build();
+                inviteRepository.save(invite);
+
+                // Send WebSocket notification to friend
+                messagingTemplate.convertAndSend("/topic/notifications/" + friend.getUsername(), 
+                        Map.of(
+                                "type", "BATTLE_INVITE",
+                                "inviteId", invite.getId(),
+                                "fromUsername", sender.getUsername(),
+                                "fromDisplayName", sender.getDisplayName() != null ? sender.getDisplayName() : sender.getUsername(),
+                                "message", "invited you to a 2v2 Team Battle!"
+                        )
+                );
+
+                return Map.of("status", "sent", "inviteId", invite.getId());
+        }
+
+        @Transactional
+        public Map<String, Object> acceptBattleInvite(String username, Long inviteId) {
+                User receiver = userRepository.findByUsername(username)
+                                .orElseThrow(() -> new RuntimeException("User not found"));
+                BattleInvite invite = inviteRepository.findById(inviteId)
+                                .orElseThrow(() -> new RuntimeException("Invite not found"));
+
+                if (!invite.getReceiver().getId().equals(receiver.getId())) {
+                        throw new RuntimeException("Unauthorized");
+                }
+
+                if (!"PENDING".equalsIgnoreCase(invite.getStatus())) {
+                        throw new RuntimeException("Invite is no longer pending");
+                }
+
+                // Create the battle
+                List<Problem> problems = problemRepository.findByDifficulty("Easy");
+                Problem problem = problems.get(new java.util.Random().nextInt(problems.size()));
+
+                Battle battle = new Battle();
+                battle.setProblem(problem);
+                battle.setStatus("ACTIVE"); // Start immediately
+                battle.setMode("2v2");
+                battle.setStartedAt(LocalDateTime.now());
+                battle.setTimeLimitSeconds(1200);
+                battleRepository.save(battle);
+
+                // Add both to Team 1
+                saveParticipant(battle, invite.getSender(), 1);
+                saveParticipant(battle, receiver, 1);
+
+                invite.setStatus("ACCEPTED");
+                invite.setBattleId(battle.getId());
+                inviteRepository.save(invite);
+
+                // Notify sender to join the battle
+                messagingTemplate.convertAndSend("/topic/notifications/" + invite.getSender().getUsername(), 
+                        Map.of(
+                                "type", "BATTLE_INVITE_ACCEPTED",
+                                "battleId", battle.getId()
+                        )
+                );
+
+                return Map.of("status", "accepted", "battleId", battle.getId());
+        }
+
+        private boolean isUserOnline(User user) {
+                if (user == null || user.getLastActiveAt() == null) return false;
+                return user.getLastActiveAt().isAfter(LocalDateTime.now().minusMinutes(5));
         }
 
         private void saveParticipant(Battle battle, User user, Integer teamId) {

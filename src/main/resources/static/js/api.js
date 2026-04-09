@@ -174,6 +174,11 @@ const api = {
             body: JSON.stringify({ friendId })
         });
     },
+    acceptBattleInvite(inviteId) {
+        return this.request(`/battles/invites/${inviteId}/accept`, {
+            method: 'POST'
+        });
+    },
 
     // Coins
     getCoinBalance() { return this.request('/coins/balance'); },

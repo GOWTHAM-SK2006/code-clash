@@ -60,6 +60,9 @@ public class User implements UserDetails {
     @Column
     private LocalDateTime lastCheckIn;
 
+    @Column
+    private LocalDateTime lastActiveAt;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role));

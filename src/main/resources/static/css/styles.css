@@ -2568,3 +2568,110 @@ main > .container > .friends-section:nth-of-type(4) { animation-delay: 0.4s; }
 }
 
 .hidden { display: none !important; }
+
+/* Online Status Styles */
+.friend-avatar-container {
+    position: relative;
+    display: inline-block;
+}
+
+.status-indicator {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--bg-card);
+}
+
+.status-indicator.online {
+    background: #00FF99;
+    box-shadow: 0 0 10px rgba(0, 255, 153, 0.5);
+    animation: pulse-green 2s infinite;
+}
+
+.status-indicator.offline {
+    background: #555;
+}
+
+@keyframes pulse-green {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.status-text {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.btn-disabled {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+    border: none;
+}
+
+/* Battle Invite Toast */
+.battle-invite-toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--bg-card);
+    border: 1px solid var(--accent);
+    border-radius: 16px;
+    padding: 1.5rem;
+    z-index: 10000;
+    width: 350px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 122, 24, 0.2);
+    animation: slideInRight 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.toast-icon {
+    font-size: 2rem;
+    background: rgba(255, 122, 24, 0.1);
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+}
+
+.toast-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.toast-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--accent);
+}
+
+.toast-msg {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.toast-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(50px); }
+    to { opacity: 1; transform: translateX(0); }
+}

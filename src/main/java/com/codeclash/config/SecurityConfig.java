@@ -26,6 +26,7 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final com.codeclash.security.MaintenanceFilter maintenanceFilter;
+    private final UserActivityFilter userActivityFilter;
 
     @Value("${app.cors.allowed-origins}")
     private String allowedOrigins;
@@ -37,7 +38,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/index.html", "/*.html", "/css/**", "/js/**", "/assets/**").permitAll()
+                        .requestMatchers("/", "/index.html", "/*.html", "/css/**", "/js/**", "/assets/**", "/ws-codeclash/**").permitAll()
                         .requestMatchers("/admin-dashboard.html").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/admin/**").permitAll()
@@ -51,7 +52,8 @@ public class SecurityConfig {
 
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .addFilterBefore(maintenanceFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(userActivityFilter, JwtAuthFilter.class);
 
         return http.build();
     }
