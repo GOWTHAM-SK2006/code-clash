@@ -14,7 +14,9 @@
 
     <main class="page-content">
         <div class="container">
-            <a href="problems.html" class="btn btn-ghost" style="margin-bottom:1rem;">← Back to Problems</a>
+            <div id="backToContest" style="display:none;">
+                <a href="#" class="btn btn-ghost" style="margin-bottom:1rem;" id="backBtn">← Back to Contest Arena</a>
+            </div>
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;" id="problemLayout">
                 <!-- Problem Description -->
@@ -60,16 +62,17 @@
         const eventId = params.get('eventId');
 
         if (eventId) {
-            const backBtn = document.querySelector('a[href="problems.html"]');
-            if (backBtn) {
+            const backWrap = document.getElementById('backToContest');
+            const backBtn = document.getElementById('backBtn');
+            if (backWrap && backBtn) {
+                backWrap.style.display = 'block';
                 backBtn.href = `contest.html?eventId=${eventId}`;
-                backBtn.textContent = '← Back to Contest Arena';
             }
         }
 
         (async function () {
             if (!problemId) {
-                window.location.href = eventId ? `contest.html?eventId=${eventId}` : 'problems.html';
+                window.location.href = eventId ? `contest.html?eventId=${eventId}` : 'dashboard.html';
                 return;
             }
 

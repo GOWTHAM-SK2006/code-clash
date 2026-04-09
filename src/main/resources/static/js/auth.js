@@ -20,8 +20,6 @@ async function enforcePageAccess() {
     const path = window.location.pathname.toLowerCase();
     const pageMap = {
         'dashboard.html': 'dashboard',
-        'problems.html': 'problems',
-        'problems.html': 'problems',
         'battle-mode.html': 'battle',
         'events.html': 'events',
         'leaderboard.html': 'leaderboard',
@@ -97,7 +95,6 @@ function renderNav(activePage) {
         <a href="index.html" class="logo">⚡ Code<span>Clash</span></a>
         <ul class="nav-links">
             <li><a href="dashboard.html" class="${activePage === 'dashboard' ? 'active' : ''}" data-nav-page="dashboard">Dashboard</a></li>
-            <li><a href="problems.html" class="${activePage === 'problems' ? 'active' : ''}" data-nav-page="problems">Problems</a></li>
             <li><a href="battle-mode.html" class="${activePage === 'battle' ? 'active' : ''}" data-nav-page="battle">Battle</a></li>
             <li><a href="events.html" class="${activePage === 'events' ? 'active' : ''}" data-nav-page="events">Events</a></li>
             <li><a href="leaderboard.html" class="${activePage === 'leaderboard' ? 'active' : ''}" data-nav-page="leaderboard">Leaderboard</a></li>
