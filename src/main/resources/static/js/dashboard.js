@@ -28,7 +28,7 @@
         // Trigger count-up/down animations
         setTimeout(() => {
             animateValue('totalCoins', 0, dash.totalCoins || 0, 1500);
-            animateValue('problemsSolved', 0, dash.problemsSolved || 0, 1200);
+
             // Rank should count DOWN to the rank (e.g. from totalUsers to 2)
             animateValue('userRank', Math.max(dash.userRank, dash.totalUsers) || 100, dash.userRank || 1, 2000, '#');
             animateValue('totalUsers', 0, dash.totalUsers || 0, 1000);
