@@ -111,7 +111,12 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-6" id="lobbySlotsContainer">
+                        <div id="lobbySlotsContainer" class="grid grid-cols-2 gap-6 relative">
+                            <!-- VS Divider (1v1 mode only) -->
+                            <div id="vsDivider" class="hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+                                <div class="w-12 h-12 rounded-full bg-black border-2 border-white flex items-center justify-center text-[10px] font-black italic shadow-[0_0_20px_rgba(255,255,255,0.3)]">VS</div>
+                            </div>
+
                             <!-- Team 1 -->
                             <div class="space-y-4">
                                 <p class="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] text-center">Team 1 (Your Team)</p>
@@ -386,6 +391,17 @@
             opacity: 1;
             transform: translateY(0);
             transition: all 0.5s ease;
+        }
+
+        .ready-glow {
+            border-color: rgba(255, 107, 0, 0.6) !important;
+            box-shadow: 0 0 20px rgba(255, 107, 0, 0.2), inset 0 0 10px rgba(255, 107, 0, 0.1) !important;
+            animation: pulse-glow-orange 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-glow-orange {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 0, 0.2); }
+            50% { box-shadow: 0 0 35px rgba(255, 107, 0, 0.4); }
         }
     </style>
 
