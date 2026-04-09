@@ -563,7 +563,7 @@ function showResult(result) {
     } else if (result.status === 'CANCELLED' && (tabSwitchForfeitTriggered || fullscreenForfeitTriggered)) {
         theme = 'theme-danger';
         icon = '😔';
-        title = 'Defeat';
+        title = 'You Lost';
         desc = tabSwitchForfeitTriggered ? 'Reason: Team disqualified due to tab switch violation.' : 'Reason: Team disqualified due to fullscreen exit.';
     } else if (isDraw) {
         theme = 'theme-accent';
@@ -573,12 +573,12 @@ function showResult(result) {
     } else if (result.status === 'CANCELLED') {
         theme = 'theme-danger';
         icon = '❌';
-        title = 'Match Forfeited';
-        desc = 'Team member left the match. The mission was aborted.';
+        title = 'You Lost';
+        desc = 'Mission aborted. Match forfeited.';
     } else if (result.winnerId || result.winningTeamId) {
         theme = 'theme-danger';
         icon = '😔';
-        title = 'Defeat';
+        title = 'You Lost';
         desc = 'The mission objective was not met. Keep training!';
     } else {
         // Still processing
