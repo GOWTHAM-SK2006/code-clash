@@ -45,6 +45,60 @@ const DEFAULT_STARTER_CODE = '';
     await startBattleAfterTermsAccepted();
 })();
 
+/* --- 3-2-1 GO Countdown --- */
+function showCountdown() {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('countdownOverlay');
+        const numberEl = document.getElementById('countdownNumber');
+        if (!overlay || !numberEl) { resolve(); return; }
+
+        overlay.style.display = 'flex';
+        const steps = ['3', '2', '1', 'GO!'];
+        let i = 0;
+
+        const playCountdownBeep = (isGo) => {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(isGo ? 880 : 440, ctx.currentTime);
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.2);
+            } catch(e) {}
+        };
+
+        const showNext = () => {
+            if (i >= steps.length) {
+                overlay.style.display = 'none';
+                resolve();
+                return;
+            }
+            numberEl.textContent = steps[i];
+            numberEl.style.animation = 'none';
+            numberEl.offsetHeight; // force reflow
+            numberEl.style.animation = 'countdown-pulse 0.8s cubic-bezier(0.16, 1, 0.3, 1) both';
+
+            if (steps[i] === 'GO!') {
+                numberEl.classList.add('countdown-go');
+                playCountdownBeep(true);
+            } else {
+                numberEl.classList.remove('countdown-go');
+                playCountdownBeep(false);
+            }
+
+            i++;
+            setTimeout(showNext, 900);
+        };
+
+        showNext();
+    });
+}
+
 async function startBattleAfterTermsAccepted() {
     // Fetch global settings to see if fullscreen is enforced
     try {
@@ -295,6 +349,10 @@ async function loadBattleDetails() {
 
         battleDurationSeconds = resolveBattleDurationSeconds(battle);
         const remainingSeconds = Number(data?.remainingSeconds);
+
+        // Show cinematic 3-2-1 GO countdown before starting
+        await showCountdown();
+
         startTimer(Number.isFinite(remainingSeconds) ? remainingSeconds : battleDurationSeconds);
         startStatusPolling();
 

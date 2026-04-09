@@ -275,16 +275,15 @@ async function initCustomLobby() {
     }
     if (defaultLobby) defaultLobby.style.display = 'none';
 
-    // Sync button states
-    const btn1v1 = document.getElementById('modeBtn1v1');
-    const btn2v2 = document.getElementById('modeBtn2v2');
-    if (currentLobbyMode === '1v1') {
-        if (btn1v1) btn1v1.classList.add('bg-[#FF6B00]', 'text-white');
-        if (btn2v2) btn2v2.classList.remove('bg-[#FF6B00]', 'text-white');
-    } else {
-        if (btn2v2) btn2v2.classList.add('bg-[#FF6B00]', 'text-white');
-        if (btn1v1) btn1v1.classList.remove('bg-[#FF6B00]', 'text-white');
-    }
+    // Sync the slots container too
+    const container = document.getElementById('lobbySlotsContainer');
+    if (container) container.dataset.mode = currentLobbyMode;
+
+    // Sync button states using vanilla CSS class
+    syncModeButtons(currentLobbyMode);
+
+    // Set initial slot labels based on mode
+    syncSlotLabels(currentLobbyMode);
 
     try {
         // Create initial lobby
@@ -299,31 +298,71 @@ async function initCustomLobby() {
     }
 }
 
-window.setLobbyMode = async (mode) => {
-    currentLobbyMode = mode;
-    
-    // UI Update
+function syncModeButtons(mode) {
     const btn1v1 = document.getElementById('modeBtn1v1');
     const btn2v2 = document.getElementById('modeBtn2v2');
     if (mode === '1v1') {
-        btn1v1.classList.add('bg-[#FF6B00]', 'text-white');
-        btn2v2.classList.remove('bg-[#FF6B00]', 'text-white');
+        if (btn1v1) btn1v1.classList.add('mode-active');
+        if (btn2v2) btn2v2.classList.remove('mode-active');
     } else {
-        btn2v2.classList.add('bg-[#FF6B00]', 'text-white');
-        btn1v1.classList.remove('bg-[#FF6B00]', 'text-white');
+        if (btn2v2) btn2v2.classList.add('mode-active');
+        if (btn1v1) btn1v1.classList.remove('mode-active');
     }
+}
 
-    // Backend update (re-use create endpoint or create a new update endpoint)
-    // For now we'll just update local state and let the polling handle slot visibility
-    // But ideally we'd tell the server the mode changed.
+function syncSlotLabels(mode) {
+    const slot1 = document.getElementById('slot-1');
+    const slot2 = document.getElementById('slot-2');
+    const slot3 = document.getElementById('slot-3');
+
+    if (mode === '1v1') {
+        // 1v1: slot-2 is the single opponent slot
+        if (slot2) {
+            slot2.querySelector('.slot-name').textContent = 'Invite Opponent';
+            slot2.querySelector('.slot-status').textContent = 'WAITING';
+            slot2.onclick = () => openRecruitmentModal('Custom', 'OPPONENT');
+        }
+    } else {
+        // 2v2: restore all labels
+        if (slot1) {
+            slot1.querySelector('.slot-name').textContent = 'Invite Teammate';
+            slot1.querySelector('.slot-status').textContent = 'EMPTY';
+        }
+        if (slot2) {
+            slot2.querySelector('.slot-name').textContent = 'Invite Opponent';
+            slot2.querySelector('.slot-status').textContent = 'EMPTY';
+        }
+        if (slot3) {
+            slot3.querySelector('.slot-name').textContent = 'Invite Opponent';
+            slot3.querySelector('.slot-status').textContent = 'EMPTY';
+        }
+    }
+}
+
+window.setLobbyMode = async (mode) => {
+    currentLobbyMode = mode;
+    
+    // UI Update - use vanilla CSS class
+    syncModeButtons(mode);
+
+    // Set data-mode on containers
+    const lobby = document.getElementById('customLobby');
+    const container = document.getElementById('lobbySlotsContainer');
+    if (lobby) lobby.dataset.mode = mode;
+    if (container) container.dataset.mode = mode;
+
+    // Update slot labels
+    syncSlotLabels(mode);
+
+    // Backend update
     try {
         await api.request(`/battles/custom/create`, {
              method: 'POST',
              body: JSON.stringify({ mode: mode, difficulty: 'Easy' })
         });
-        // We'll just redirect to refresh the lobby state
+        // Persist mode in URL without reload
         const url = new URL(window.location.href);
-        url.searchParams.set('mode', mode); // Persist mode in URL
+        url.searchParams.set('mode', mode);
         window.history.pushState({}, '', url);
         location.reload(); 
     } catch(e) {}
@@ -347,32 +386,48 @@ function updateLobbyUI(data) {
     const participants = data.participants || [];
     const mode = data.battle?.mode || '2v2';
     
+    // Set data-mode on BOTH containers for CSS targeting
     const lobby = document.getElementById('customLobby');
     const container = document.getElementById('lobbySlotsContainer');
     if (lobby) lobby.dataset.mode = mode;
     if (container) container.dataset.mode = mode;
 
-    // Clear all slots first
+    // Sync mode buttons
+    syncModeButtons(mode);
+
+    // Clear all non-host slots first
     for (let i = 1; i < 4; i++) {
         const slot = document.getElementById(`slot-${i}`);
         if (!slot) continue;
         slot.className = 'lobby-slot slot-empty';
         slot.classList.remove('ready-glow');
-        slot.querySelector('.slot-name').textContent = i === 1 ? 'Invite Teammate' : 'Invite Opponent';
-        slot.querySelector('.slot-status').textContent = mode === '1v1' ? 'Waiting...' : 'EMPTY';
         slot.querySelector('.slot-avatar').textContent = '+';
         
+        // Set correct labels based on mode and slot index
+        if (mode === '1v1') {
+            slot.querySelector('.slot-name').textContent = 'Invite Opponent';
+            slot.querySelector('.slot-status').textContent = 'WAITING';
+        } else {
+            slot.querySelector('.slot-name').textContent = i === 1 ? 'Invite Teammate' : 'Invite Opponent';
+            slot.querySelector('.slot-status').textContent = 'EMPTY';
+        }
+
+        // Re-attach click handlers
+        if (i === 1) {
+            slot.onclick = () => openRecruitmentModal('Custom', 'TEAMMATE');
+        } else {
+            slot.onclick = () => openRecruitmentModal('Custom', 'OPPONENT');
+        }
     }
 
     // Fill slots based on participants
     // Slot 0 is always host
-    participants.forEach((p, idx) => {
-        if (idx === 0) return; // Skip host
-        
-        // Logic to assign participant to slot based on team
-        let slotIdx = -1;
-        if (p.teamId === 1) slotIdx = 1; // Teammate slot
-        else {
+    const nonHostParticipants = participants.filter((_, idx) => idx > 0);
+    nonHostParticipants.forEach((p) => {
+        let slotIdx;
+        if (p.teamId === 1) {
+            slotIdx = 1; // Teammate
+        } else {
             // Opponent slots (2 and 3)
             const slot2 = document.getElementById('slot-2');
             if (slot2 && slot2.classList.contains('slot-empty')) slotIdx = 2;
@@ -389,20 +444,28 @@ function updateLobbyUI(data) {
         }
     });
 
+    // Host slot styling
     const hostSlot = document.getElementById('slot-0');
     if (hostSlot) {
-        if (mode === '1v1') {
-            hostSlot.className = 'lobby-slot slot-filled ready-glow';
-            hostSlot.querySelector('.slot-name').textContent = 'You (Host)';
-            hostSlot.querySelector('.slot-status').textContent = '🔥 READY';
+        hostSlot.className = 'lobby-slot slot-filled ready-glow';
+        hostSlot.querySelector('.slot-name').textContent = 'You (Host)';
+        hostSlot.querySelector('.slot-status').textContent = mode === '1v1' ? '🔥 READY' : 'READY';
+    }
+
+    // Update launch info text
+    const launchInfo = document.getElementById('lobbyLaunchInfo');
+    const required = mode === '1v1' ? 2 : 4;
+    if (launchInfo) {
+        if (participants.length >= required) {
+            launchInfo.textContent = '🚀 All players ready! Starting match...';
+            launchInfo.style.color = '#00C853';
         } else {
-            hostSlot.className = 'lobby-slot slot-filled';
-            hostSlot.querySelector('.slot-name').textContent = 'You (Host)';
-            hostSlot.querySelector('.slot-status').textContent = 'READY';
+            launchInfo.textContent = `Waiting for players... (${participants.length}/${required})`;
+            launchInfo.style.color = '#FF6B00';
         }
     }
 
-    // Headers are now handled primarily by CSS data-mode selectors
+    // Headers are handled by CSS data-mode selectors
     if (mode === '2v2') {
         const t1Header = document.getElementById('t1-header');
         const t2Header = document.getElementById('t2-header');

@@ -481,6 +481,49 @@
             pointer-events: none;
         }
         .victory-glow { animation: green-pulse 2s ease-in-out infinite; }
+
+        /* Countdown Overlay */
+        .countdown-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100003;
+            background: rgba(0, 0, 0, 0.92);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .countdown-number {
+            font-family: 'Orbitron', 'JetBrains Mono', monospace;
+            font-size: 8rem;
+            font-weight: 900;
+            color: #FF6B00;
+            text-shadow: 0 0 60px rgba(255, 107, 0, 0.6), 0 0 120px rgba(255, 107, 0, 0.3);
+            animation: countdown-pulse 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        .countdown-go {
+            font-size: 6rem;
+            color: #00C853;
+            text-shadow: 0 0 60px rgba(0, 200, 83, 0.6), 0 0 120px rgba(0, 200, 83, 0.3);
+        }
+
+        .countdown-label {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 6px;
+        }
+
+        @keyframes countdown-pulse {
+            0% { transform: scale(2.5); opacity: 0; filter: blur(10px); }
+            50% { transform: scale(0.9); opacity: 1; filter: blur(0); }
+            100% { transform: scale(1); opacity: 1; }
+        }
     </style>
 </head>
 
@@ -488,6 +531,12 @@
     <nav class="navbar" id="navbar"></nav>
 
     <main class="page-content">
+        <!-- Countdown Overlay -->
+        <div id="countdownOverlay" class="countdown-overlay" style="display:none;">
+            <div class="countdown-label">GET READY</div>
+            <div class="countdown-number" id="countdownNumber">3</div>
+        </div>
+
         <div class="container battle-view-container">
             <div id="battleView">
                 <div class="timer-v2" id="timer">15:00</div>

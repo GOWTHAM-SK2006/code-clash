@@ -107,7 +107,7 @@
                             <!-- Mode Selector -->
                             <div class="inline-flex p-1 bg-black/40 border border-white/10 rounded-full mx-auto" id="lobbyModeSelector">
                                 <button onclick="setLobbyMode('1v1')" id="modeBtn1v1" class="px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all">1 vs 1</button>
-                                <button onclick="setLobbyMode('2v2')" id="modeBtn2v2" class="px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all bg-[#FF6B00] text-white">2 vs 2</button>
+                                <button onclick="setLobbyMode('2v2')" id="modeBtn2v2" class="px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all mode-active">2 vs 2</button>
                             </div>
                         </div>
 
@@ -402,6 +402,27 @@
         @keyframes pulse-glow-orange {
             0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 0, 0.2); }
             50% { box-shadow: 0 0 35px rgba(255, 107, 0, 0.4); }
+        }
+
+        /* Mode Toggle Button Active State */
+        #modeBtn1v1, #modeBtn2v2 {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.5);
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem 1.5rem;
+            border-radius: 9999px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            transition: all 0.3s ease;
+        }
+
+        #modeBtn1v1.mode-active, #modeBtn2v2.mode-active {
+            background: #FF6B00 !important;
+            color: #fff !important;
+            box-shadow: 0 0 15px rgba(255, 107, 0, 0.3);
         }
 
         /* 1v1 Dedicated Layout - Highly Aggressive CSS */
