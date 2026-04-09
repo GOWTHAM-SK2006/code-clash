@@ -168,8 +168,45 @@ public class BattleService {
                                 "status", "matched",
                                 "battleId", battle.getId(),
                                 "problemName", randomProblem.getTitle(),
-                                "opponentName", opponent.getDisplayName(),
+                                 "opponentName", opponent.getDisplayName(),
                                 "difficulty", difficulty);
+        }
+
+        @Transactional
+        public Map<String, Object> inviteToTeamBattle(String requesterUsername, Long friendId) {
+                User sender = userRepository.findByUsername(requesterUsername)
+                                .orElseThrow(() -> new RuntimeException("User not found"));
+                User friend = userRepository.findById(friendId)
+                                .orElseThrow(() -> new RuntimeException("Friend not found"));
+
+                // Create a new 2v2 battle
+                // For simplicity, we create the battle and wait for another team
+                List<Problem> problems = problemRepository.findByDifficulty("Easy");
+                Problem problem = problems.get(new java.util.Random().nextInt(problems.size()));
+
+                Battle battle = new Battle();
+                battle.setProblem(problem);
+                battle.setStatus("WAITING_TEAM");
+                battle.setMode("2v2");
+                battle.setStartedAt(LocalDateTime.now());
+                battle.setTimeLimitSeconds(1200); // 20 mins for 2v2
+                battleRepository.save(battle);
+
+                // Add both to Team 1
+                saveParticipant(battle, sender, 1);
+                saveParticipant(battle, friend, 1);
+
+                return Map.of(
+                                "status", "waiting_for_opponents",
+                                "battleId", battle.getId());
+        }
+
+        private void saveParticipant(Battle battle, User user, Integer teamId) {
+                BattleParticipant participant = new BattleParticipant();
+                participant.setBattle(battle);
+                participant.setUser(user);
+                participant.setTeamId(teamId);
+                participantRepository.save(participant);
         }
 
         private String normalizeDifficulty(String difficultyInput) {

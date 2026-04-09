@@ -21,6 +21,9 @@ let fullscreenGuardEnabled = true;
 let pageExitGuardEnabled = true;
 let battleDurationSeconds = 900;
 let battleTimeoutTriggered = false;
+let stompClient = null;
+let isRemoteChange = false;
+let userTeamId = null;
 
 const DEFAULT_STARTER_CODE = '';
 
@@ -280,6 +283,18 @@ async function loadBattleDetails() {
         const remainingSeconds = Number(data?.remainingSeconds);
         startTimer(Number.isFinite(remainingSeconds) ? remainingSeconds : battleDurationSeconds);
         startStatusPolling();
+
+        if (battle.mode === '2v2') {
+            const currentUser = api.getUser();
+            const myParticipant = participants.find(p => p.user?.userId === currentUser?.userId);
+            userTeamId = myParticipant?.teamId;
+            
+            // Show all participants for 2v2
+            renderTeamParticipants(participants);
+            
+            // Connect to WebSocket for code sync
+            initWebSocket();
+        }
     } catch (e) {
         alert('Error loading battle: ' + e.message);
         window.location.href = 'battle-mode.html';
@@ -676,6 +691,13 @@ function ensureMonacoEditor() {
 
             monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => runBattleCode());
             monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => submitBattleSolution());
+
+            // Listen for changes to sync with team
+            monacoEditor.onDidChangeModelContent((event) => {
+                if (isRemoteChange) return;
+                syncCodeWithTeam();
+            });
+
             resolve(monacoEditor);
         };
 
@@ -711,7 +733,12 @@ function setEditorLanguage(language) {
 function setEditorCode(value) {
     const code = String(value || '');
     if (monacoEditor) {
+        if (monacoEditor.getValue() === code) return;
+        isRemoteChange = true;
+        const position = monacoEditor.getPosition();
         monacoEditor.setValue(code);
+        if (position) monacoEditor.setPosition(position);
+        isRemoteChange = false;
         setEditorLanguage(getSelectedLanguage());
         return;
     }
@@ -951,4 +978,79 @@ function escapeHtml(value) {
         .replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#39;');
+}
+
+/* --- 2v2 Real-time Sync Logic --- */
+
+function initWebSocket() {
+    const socket = new SockJS('/ws-codeclash');
+    stompClient = Stomp.over(socket);
+    stompClient.debug = null; // Disable logging for better performance
+
+    stompClient.connect({}, (frame) => {
+        console.log('Connected to WebSocket for battle sync');
+        
+        stompClient.subscribe(`/topic/battle/${currentBattleId}/code`, (message) => {
+            const data = JSON.parse(message.body);
+            const currentUser = api.getUser();
+            
+            // Only sync if it's from our team and not from us
+            if (data.teamId === userTeamId && data.sender !== currentUser?.username) {
+                setEditorCode(data.code);
+                // Also update language if changed
+                if (data.language) {
+                    const select = document.getElementById('languageSelect');
+                    if (select && select.value !== data.language) {
+                        select.value = data.language;
+                        setEditorLanguage(data.language);
+                    }
+                }
+            }
+        });
+    }, (err) => {
+        console.error('WebSocket connection failed:', err);
+        // Fallback to polling or retry logic if needed
+    });
+}
+
+// Debounce code sync to avoid flooding server
+let syncTimeout = null;
+function syncCodeWithTeam() {
+    if (!stompClient || !stompClient.connected) return;
+    
+    if (syncTimeout) clearTimeout(syncTimeout);
+    syncTimeout = setTimeout(() => {
+        const code = getEditorCode();
+        const language = getSelectedLanguage();
+        const currentUser = api.getUser();
+        
+        stompClient.send(`/app/battle/${currentBattleId}/sync`, {}, JSON.stringify({
+            sender: currentUser?.username,
+            code: code,
+            language: language,
+            teamId: userTeamId
+        }));
+    }, 500); // 500ms debounce
+}
+
+function renderTeamParticipants(participants) {
+    // Show cards based on teams
+    const team1 = participants.filter(p => p.teamId === 1);
+    const team2 = participants.filter(p => p.teamId === 2);
+
+    if (team1[0]) updatePlayerCard('p1', team1[0]);
+    if (team1[1]) updatePlayerCard('p1Partner', team1[1]);
+    
+    if (team2[0]) updatePlayerCard('p2', team2[0]);
+    if (team2[1]) updatePlayerCard('p2Partner', team2[1]);
+}
+
+function updatePlayerCard(idPrefix, participant) {
+    const card = document.getElementById(idPrefix + 'Card');
+    const nameEl = document.getElementById(idPrefix + 'Name');
+    const avatarEl = document.getElementById(idPrefix + 'Avatar');
+    
+    if (card) card.classList.remove('hidden');
+    if (nameEl) nameEl.textContent = participant.user?.displayName || participant.user?.username || 'Player';
+    if (avatarEl) avatarEl.textContent = (participant.user?.displayName || participant.user?.username || 'P')[0].toUpperCase();
 }

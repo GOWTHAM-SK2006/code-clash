@@ -36,4 +36,7 @@ public class BattleParticipant {
     @Column(nullable = false)
     @Builder.Default
     private Boolean isCorrect = false;
+
+    @Column
+    private Integer teamId; // 1 or 2
 }

@@ -27,12 +27,26 @@
                     <span class="battle-mode-cta">Continue to 1v1 Arena →</span>
                 </a>
 
-                <button type="button" class="card battle-mode-card battle-mode-card-disabled" id="mode2v2Btn">
-                    <span class="battle-mode-badge battle-mode-badge-soon">Coming Soon</span>
+                <button type="button" class="card card-glow battle-mode-card battle-mode-card-active" id="mode2v2Btn">
+                    <span class="battle-mode-badge" style="background:var(--glow-secondary)">Team Collaboration</span>
                     <h3>2 vs 2</h3>
-                    <p>Team battle mode will be available in a future update.</p>
-                    <span class="battle-mode-cta">Not available yet</span>
+                    <p>Team up with a friend to outcode another duo in real-time!</p>
+                    <span class="battle-mode-cta">Invite a Friend →</span>
                 </button>
+            </div>
+        </div>
+
+        <!-- Friend Invitation Modal -->
+        <div id="inviteModal" class="modal-overlay hidden">
+            <div class="card modal-card">
+                <div class="modal-header">
+                    <h2>Invite a Friend</h2>
+                    <button class="modal-close" id="closeInviteModal">&times;</button>
+                </div>
+                <div class="friend-list-container" id="friendList">
+                    <!-- Friends will be loaded here -->
+                    <div class="loading-spinner"></div>
+                </div>
             </div>
         </div>
     </main>

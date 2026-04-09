@@ -67,6 +67,17 @@ public class BattleController {
         }
     }
 
+    @PostMapping("/invite-team")
+    public ResponseEntity<?> inviteTeam(Authentication auth, @RequestBody Map<String, Long> request) {
+        String username = auth.getName();
+        Long friendId = request.get("friendId");
+        try {
+            return ResponseEntity.ok(battleService.inviteToTeamBattle(username, friendId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", getSafeMessage(e)));
+        }
+    }
+
     private String getSafeMessage(Exception exception) {
         String message = exception.getMessage();
         return (message == null || message.isBlank()) ? "Request failed" : message;

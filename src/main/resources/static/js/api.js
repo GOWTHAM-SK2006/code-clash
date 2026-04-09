@@ -168,6 +168,12 @@ const api = {
     cancelFindBattle() {
         return this.request('/battles/cancel-find', { method: 'POST' });
     },
+    inviteTeamBattle(friendId) {
+        return this.request('/battles/invite-team', {
+            method: 'POST',
+            body: JSON.stringify({ friendId })
+        });
+    },
 
     // Coins
     getCoinBalance() { return this.request('/coins/balance'); },
