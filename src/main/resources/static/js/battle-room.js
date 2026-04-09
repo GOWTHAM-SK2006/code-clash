@@ -392,7 +392,11 @@ async function runBattleCode() {
 
     const code = getEditorCode();
     const language = getSelectedLanguage();
-    const testcases = battleTestcases.length ? battleTestcases : [{ input: '', expected: '' }];
+    const testcases = battleTestcases.length 
+        ? battleTestcases.filter(tc => tc.sample === true).length > 0 
+           ? battleTestcases.filter(tc => tc.sample === true) 
+           : battleTestcases.slice(0, 3) 
+        : [{ input: '', expected: '' }];
 
     if (!code || !code.trim()) {
         alert('Please write code before running.');
