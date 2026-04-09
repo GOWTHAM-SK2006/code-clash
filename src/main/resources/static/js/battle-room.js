@@ -251,13 +251,14 @@ async function loadBattleDetails() {
         }
 
         document.getElementById('battleProblemTitle').textContent = battle.problem?.title || 'Problem';
+        currentProblem = battle.problem || null;
 
         // Input/Output Format
         const formatSection = document.getElementById('formatSection');
         const inputFormatEl = document.getElementById('inputFormat');
         const outputFormatEl = document.getElementById('outputFormat');
 
-        if (currentProblem.inputFormat || currentProblem.outputFormat) {
+        if (currentProblem && (currentProblem.inputFormat || currentProblem.outputFormat)) {
             if (formatSection) formatSection.style.display = 'block';
             if (inputFormatEl) inputFormatEl.textContent = currentProblem.inputFormat || 'Not specified';
             if (outputFormatEl) outputFormatEl.textContent = currentProblem.outputFormat || 'Not specified';
