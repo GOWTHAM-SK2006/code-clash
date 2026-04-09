@@ -540,11 +540,6 @@ function showResult(result) {
     const overlay = document.getElementById('fullscreenWarning');
     if (overlay) overlay.style.display = 'none';
 
-    // Disable all interaction
-    const submitBtn = document.querySelector('button[onclick="submitBattleSolution()"]');
-    const runBtn = document.querySelector('button[onclick="runBattleCode()"]');
-    const cancelBtn = document.querySelector('button[onclick="cancelMatch()"]');
-
     const user = api.getUser();
     let theme = 'theme-accent';
     let icon = '⏱️';
@@ -556,32 +551,27 @@ function showResult(result) {
 
     if (isWinner) {
         theme = 'theme-success';
-        icon = '🎉';
-        title = 'You Win';
+        icon = '🏆';
+        title = 'YOU WIN';
         const reward = result.problem?.difficulty === 'Hard' ? 60 : (result.problem?.difficulty === 'Medium' ? 40 : 30);
         desc = `Mission Objective Secured! +${reward} Coins awarded.`;
-    } else if (result.status === 'CANCELLED' && (tabSwitchForfeitTriggered || fullscreenForfeitTriggered)) {
-        theme = 'theme-danger';
-        icon = '😔';
-        title = 'You Lost';
-        desc = tabSwitchForfeitTriggered ? 'Reason: Team disqualified due to tab switch violation.' : 'Reason: Team disqualified due to fullscreen exit.';
     } else if (isDraw) {
         theme = 'theme-accent';
         icon = '⏱️';
-        title = 'Draw';
+        title = 'DRAW';
         desc = 'No team managed to complete the challenge in time.';
-    } else if (result.status === 'CANCELLED') {
+    } else if (result.status === 'CANCELLED' || result.winnerId || result.winningTeamId) {
         theme = 'theme-danger';
-        icon = '❌';
-        title = 'You Lost';
-        desc = 'Mission aborted. Match forfeited.';
-    } else if (result.winnerId || result.winningTeamId) {
-        theme = 'theme-danger';
-        icon = '😔';
-        title = 'You Lost';
-        desc = 'The mission objective was not met. Keep training!';
+        icon = '💀';
+        title = 'DEFEAT';
+        if (tabSwitchForfeitTriggered) {
+            desc = 'Disqualified — Tab switch violation.';
+        } else if (fullscreenForfeitTriggered) {
+            desc = 'Disqualified — Fullscreen exit detected.';
+        } else {
+            desc = 'Mission failed. Your opponent secured the objective.';
+        }
     } else {
-        // Still processing
         resultEl.innerHTML = `
             <div class="result-card-v2 theme-accent">
                 <span class="result-icon-v2">⏳</span>
@@ -594,7 +584,7 @@ function showResult(result) {
     }
 
     resultEl.innerHTML = `
-        <div class="result-card-v2 ${theme}">
+        <div class="result-card-v2 ${theme} ${theme === 'theme-success' ? 'victory-glow' : ''}" id="resultCard">
             <span class="result-icon-v2">${icon}</span>
             <h2 class="result-title-v2">${title}</h2>
             <p class="result-desc-v2">${desc}</p>
@@ -605,38 +595,95 @@ function showResult(result) {
         </div>
     `;
 
-    // Trigger High-Intensity Fireworks for winner
-    if (theme === 'theme-success' && typeof confetti === 'function') {
-        const duration = 5 * 1000;
-        const animationEnd = Date.now() + duration;
-        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
-
-        const randomInRange = (min, max) => Math.random() * (max - min) + min;
-
-        const interval = setInterval(() => {
-            const timeLeft = animationEnd - Date.now();
-            if (timeLeft <= 0) return clearInterval(interval);
-
-            const particleCount = 50 * (timeLeft / duration);
-            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
-        }, 250);
-
-        // Auto-exit countdown
-        let countdown = 5;
-        const countdownInterval = setInterval(() => {
-            countdown -= 1;
-            const label = document.getElementById('autoExitLabel');
-            if (label) label.textContent = `Auto-exiting to lobby in ${countdown}s...`;
-            if (countdown <= 0) clearInterval(countdownInterval);
-        }, 1000);
-
-        // Final Redirect
-        setTimeout(() => {
-            window.location.href = 'battle-mode.html';
-        }, 5000);
+    // --- Gaming Audio & Visual Effects ---
+    if (theme === 'theme-success') {
+        playVictorySound();
+        triggerFireworks();
+    } else if (theme === 'theme-danger') {
+        playDefeatSound();
+        triggerDefeatVisuals();
     }
+
+    // Auto-exit countdown (all outcomes)
+    let countdown = 5;
+    const countdownInterval = setInterval(() => {
+        countdown -= 1;
+        const label = document.getElementById('autoExitLabel');
+        if (label) label.textContent = `Auto-exiting to lobby in ${countdown}s...`;
+        if (countdown <= 0) clearInterval(countdownInterval);
+    }, 1000);
+
+    setTimeout(() => {
+        window.location.href = 'battle-mode.html';
+    }, 5000);
 }
+
+// --- Gaming Sound Effects (Web Audio API) ---
+function playVictorySound() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.15);
+            gain.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.15 + 0.6);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(ctx.currentTime + i * 0.15);
+            osc.stop(ctx.currentTime + i * 0.15 + 0.6);
+        });
+    } catch (_e) { /* Audio not supported */ }
+}
+
+function playDefeatSound() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(200, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.8);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.8);
+    } catch (_e) { /* Audio not supported */ }
+}
+
+// --- Gaming Visual Effects ---
+function triggerFireworks() {
+    if (typeof confetti !== 'function') return;
+    const duration = 5 * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100003 };
+    const randomInRange = (min, max) => Math.random() * (max - min) + min;
+
+    const interval = setInterval(() => {
+        const timeLeft = animationEnd - Date.now();
+        if (timeLeft <= 0) return clearInterval(interval);
+        const particleCount = 50 * (timeLeft / duration);
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+    }, 250);
+}
+
+function triggerDefeatVisuals() {
+    // Red flash overlay
+    const flash = document.createElement('div');
+    flash.className = 'defeat-flash';
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 1500);
+
+    // Shake the result card
+    const card = document.getElementById('resultCard');
+    if (card) card.classList.add('defeat-shake');
+}
+
 
 function getSelectedLanguage() {
     const select = document.getElementById('languageSelect');
@@ -1037,6 +1084,20 @@ function initWebSocket() {
                         setEditorLanguage(data.language);
                     }
                 }
+            }
+        });
+
+        // --- Real-time battle status sync (instant result) ---
+        stompClient.subscribe(`/topic/battle/${currentBattleId}/status`, (message) => {
+            const data = JSON.parse(message.body);
+            if (data.status === 'FINISHED' || data.status === 'CANCELLED') {
+                // Fetch full battle details and show result immediately
+                api.getBattle(currentBattleId).then(fullData => {
+                    showResult(fullData.battle);
+                }).catch(() => {
+                    // Fallback: use broadcast data directly
+                    showResult(data);
+                });
             }
         });
     }, (err) => {

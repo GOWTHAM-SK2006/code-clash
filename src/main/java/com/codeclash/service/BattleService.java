@@ -62,6 +62,20 @@ public class BattleService {
                 this.messagingTemplate = messagingTemplate;
         }
 
+        private void broadcastBattleStatus(Battle battle) {
+                if (battle == null) return;
+                try {
+                        java.util.Map<String, Object> payload = new java.util.HashMap<>();
+                        payload.put("battleId", battle.getId());
+                        payload.put("status", battle.getStatus());
+                        payload.put("winningTeamId", battle.getWinningTeamId() != null ? battle.getWinningTeamId() : 0);
+                        payload.put("winnerId", battle.getWinnerId() != null ? battle.getWinnerId() : 0);
+                        messagingTemplate.convertAndSend("/topic/battle/" + battle.getId() + "/status", payload);
+                } catch (Exception e) {
+                        // Non-critical sync - log and continue
+                }
+        }
+
         @Transactional
         public Map<String, Object> findMatch(String username, String difficultyInput) {
                 User user = userRepository.findByUsername(username)
@@ -458,6 +472,7 @@ public class BattleService {
                 }
                 battleRepository.save(battle);
 
+                broadcastBattleStatus(battle);
                 return battle;
         }
 
@@ -526,6 +541,8 @@ public class BattleService {
                                 .forEach(p -> coinService.awardCoins(p.getUser(), winnerReward, "2v2 Victory (Opponent failed mission) #" + battleId));
                 }
 
+
+                broadcastBattleStatus(battle);
                 return battle;
         }
 
@@ -643,6 +660,7 @@ public class BattleService {
                         .filter(p -> p.getTeamId().equals(opponentTeamId))
                         .forEach(p -> coinService.awardCoins(p.getUser(), reward, "Battle victory (opponent timeout) #" + battleId));
 
+                broadcastBattleStatus(battle);
                 return battle;
         }
 
