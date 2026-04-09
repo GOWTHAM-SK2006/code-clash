@@ -858,6 +858,29 @@ public class BattleService {
                 User user = userRepository.findByUsername(username)
                                 .orElseThrow(() -> new RuntimeException("User not found"));
                 queueRepository.deleteByUser(user);
+
+                // Check if user is in a WAITING 2v2 battle
+                Optional<BattleParticipant> participant = participantRepository
+                        .findTopByUserIdOrderByBattleIdDesc(user.getId());
+                
+                if (participant.isPresent()) {
+                    Battle battle = participant.get().getBattle();
+                    if ("WAITING".equals(battle.getStatus()) && "2v2".equals(battle.getMode())) {
+                        // Notify all participants of cancellation
+                        List<BattleParticipant> members = getBattleParticipants(battle.getId());
+                        for (var m : members) {
+                            messagingTemplate.convertAndSend("/topic/notifications/" + m.getUser().getUsername(),
+                                Map.of(
+                                    "type", "BATTLE_CANCELLED",
+                                    "message", "2v2 Recruitment was aborted by a teammate."
+                                )
+                            );
+                        }
+                        // Delete the battle and its participants
+                        participantRepository.deleteAll(members);
+                        battleRepository.delete(battle);
+                    }
+                }
         }
 
 }

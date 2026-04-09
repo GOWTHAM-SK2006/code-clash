@@ -444,6 +444,13 @@ function connectGlobalWS() {
             } else if (data.type === 'BATTLE_MATCHED' || data.type === 'BATTLE_INVITE_ACCEPTED') {
                 // Match found! 
                 window.location.href = `battle-room.html?battleId=${data.battleId}`;
+            } else if (data.type === 'BATTLE_CANCELLED') {
+                // Search cancelled by teammate
+                const overlay = document.querySelector('.hud-searching-overlay');
+                if (overlay) overlay.remove();
+                if (typeof showSystemHUD === 'function') {
+                    showSystemHUD(data.message || 'Recruitment aborted by teammate.', 'error');
+                }
             }
         });
     }, (err) => {
@@ -546,7 +553,7 @@ function showSearchingHUD(difficulty = "") {
             <div class="hud-searching-status">Team Synchronized</div>
             <div class="hud-searching-msg">Searching for Opponent Duo ${difficulty ? '['+difficulty+']' : ''}...</div>
             <p style="color:var(--text-secondary); margin-top:1.5rem; font-size:0.8rem;">The battle will begin automatically once opponents are matched.</p>
-            <button class="btn btn-ghost btn-sm" onclick="location.reload()" style="margin-top:2rem;">Abort Search</button>
+            <button class="btn btn-ghost btn-sm" onclick="api.cancelFindBattle().then(() => location.reload())" style="margin-top:2rem;">Abort Search</button>
         </div>
     `;
     document.body.appendChild(overlay);
