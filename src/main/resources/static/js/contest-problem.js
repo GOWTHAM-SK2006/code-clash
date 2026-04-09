@@ -164,20 +164,6 @@ function renderProblem(problem) {
         setEditorCode(starterCode);
     }
 
-    const languageSelect = document.getElementById('languageSelect');
-    if (languageSelect) {
-        try {
-            const languages = await api.getLanguages();
-            if (languages && languages.length > 0) {
-                languageSelect.innerHTML = languages.map(l => `
-                    <option value="${l.slug}">${l.name}</option>
-                `).join('');
-            }
-        } catch (err) {
-            console.warn('Failed to load filtered languages for contest:', err);
-        }
-        languageSelect.onchange = onLanguageChanged;
-    }
 
     battleTestcases = parseBattleTestcases(problem);
     renderTestcaseTabs();
@@ -273,7 +259,7 @@ function getEditorCode() {
 }
 
 function getSelectedLanguage() {
-    return document.getElementById('languageSelect')?.value || 'python';
+    return 'python';
 }
 
 function onLanguageChanged() {

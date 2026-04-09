@@ -260,28 +260,6 @@ async function loadBattleDetails() {
             setEditorCode(starterCode);
         }
 
-        const languageSelect = document.getElementById('languageSelect');
-        if (languageSelect) {
-            try {
-                const languages = await api.getLanguages();
-                if (languages && languages.length > 0) {
-                    languageSelect.innerHTML = languages.map(l => `
-                        <option value="${l.slug}">${l.name}</option>
-                    `).join('');
-                    
-                    // Set editor to first available enabled language
-                    if (monacoEditor) {
-                        const firstLang = languages[0].slug;
-                        setEditorLanguage(firstLang);
-                        const starter = getEditorStarterCode(currentProblem, firstLang);
-                        if (starter) setEditorCode(starter);
-                    }
-                }
-            } catch (err) {
-                console.warn('Failed to load filtered languages, using defaults:', err);
-            }
-            languageSelect.onchange = onLanguageChanged;
-        }
 
         battleTestcases = parseBattleTestcases(battle.problem);
         renderTestcaseTabs();
@@ -537,12 +515,6 @@ function showResult(result) {
     const submitBtn = document.querySelector('button[onclick="submitBattleSolution()"]');
     const runBtn = document.querySelector('button[onclick="runBattleCode()"]');
     const cancelBtn = document.querySelector('button[onclick="cancelMatch()"]');
-    const languageSelect = document.getElementById('languageSelect');
-    if (submitBtn) submitBtn.disabled = true;
-    if (runBtn) runBtn.disabled = true;
-    if (cancelBtn) cancelBtn.disabled = true;
-    if (languageSelect) languageSelect.disabled = true;
-    if (monacoEditor) monacoEditor.updateOptions({ readOnly: true });
 
     const user = api.getUser();
     let theme = 'theme-accent';
@@ -616,11 +588,6 @@ function showResult(result) {
 }
 
 function getSelectedLanguage() {
-    const selected = document.getElementById('languageSelect')?.value || 'python';
-    if (selected === 'java') return 'java';
-    if (selected === 'javascript') return 'javascript';
-    if (selected === 'c') return 'c';
-    if (selected === 'cpp') return 'cpp';
     return 'python';
 }
 
