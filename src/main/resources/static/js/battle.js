@@ -375,7 +375,10 @@ function startLobbyPolling() {
             const data = await api.getBattle(currentLobbyBattleId);
             updateLobbyUI(data);
             
-            if (data.battle?.status === 'ACTIVE') {
+            const required = (data.battle?.mode === '1v1') ? 2 : 4;
+            const current = data.participants ? data.participants.length : 0;
+
+            if (data.battle?.status === 'ACTIVE' && current >= required) {
                 window.location.href = `battle-room.html?battleId=${currentLobbyBattleId}`;
             }
         } catch (e) {}

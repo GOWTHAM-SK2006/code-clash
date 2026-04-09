@@ -576,29 +576,39 @@ public class BattleService {
                 User user = userRepository.findByUsername(username)
                                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-                if (!"WAITING".equals(battle.getStatus())) {
+                if (!"WAITING".equals(battle.getStatus()) && !"WAITING_TEAM".equals(battle.getStatus())) {
                         throw new RuntimeException("Battle already started or finished");
                 }
 
-                if (participantRepository.countByBattleId(battleId) >= 2) {
+                int currentCount = (int) participantRepository.countByBattleId(battleId);
+                int required = "2v2".equals(battle.getMode()) ? 4 : 2;
+
+                if (currentCount >= required) {
                         throw new RuntimeException("Battle is full");
                 }
 
                 BattleParticipant participant = new BattleParticipant();
                 participant.setBattle(battle);
                 participant.setUser(user);
-                participant.setTeamId(2);
+                // For direct joins, we assign incrementing team IDs or simple role-based logic
+                // In 1v1: 1 enters first (host), 2 enters second (opponent)
+                // In 2v2: Logic might vary, but we default to filling Team 2 if Team 1 is full or vice-versa
+                participant.setTeamId(currentCount < required / 2 ? 1 : 2);
                 participantRepository.save(participant);
 
-                battle.setStatus("ACTIVE");
-                battle.setStartedAt(LocalDateTime.now());
-                if (battle.getTimeLimitSeconds() == null || battle.getTimeLimitSeconds() <= 0) {
-                        battle.setTimeLimitSeconds(
-                                        getBattleDurationSecondsByDifficulty(battle.getProblem().getDifficulty()));
+                // Check again after save to see if we reached the threshold
+                long newCount = participantRepository.countByBattleId(battleId);
+                if (newCount >= required) {
+                        battle.setStatus("ACTIVE");
+                        battle.setStartedAt(LocalDateTime.now());
+                        if (battle.getTimeLimitSeconds() == null || battle.getTimeLimitSeconds() <= 0) {
+                                battle.setTimeLimitSeconds(
+                                                getBattleDurationSecondsByDifficulty(battle.getProblem().getDifficulty()));
+                        }
+                        battleRepository.save(battle);
+                        broadcastBattleStatus(battle);
                 }
-                battleRepository.save(battle);
 
-                broadcastBattleStatus(battle);
                 return battle;
         }
 
