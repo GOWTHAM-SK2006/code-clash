@@ -1,0 +1,63 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: codeclash
+
+  datasource:
+    url: jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5432}/${PGDATABASE:codeclash}
+    username: ${PGUSER:postgres}
+    password: ${PGPASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:codeclash-super-secret-key-that-is-at-least-256-bits-long-for-hs256}
+    expiration-ms: 86400000
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:8080,http://127.0.0.1:8080,http://localhost:3000,http://127.0.0.1:5500}
+  admin:
+    username: ${ADMIN_USERNAME:admin}
+    password: ${ADMIN_PASSWORD:admin123}
+    dashboard-url: ${ADMIN_DASHBOARD_URL:/admin-dashboard.html}
+    access-token-ttl-minutes: ${ADMIN_ACCESS_TOKEN_TTL_MINUTES:720}
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: jdbc:h2:mem:codeclash;MODE=PostgreSQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    defer-datasource-initialization: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+  h2:
+    console:
+      enabled: true

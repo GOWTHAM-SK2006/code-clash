@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events — CodeClash</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .events-page {
+            background:
+                radial-gradient(1100px 520px at 50% -5%, rgba(255, 107, 0, 0.12), transparent 62%),
+                radial-gradient(820px 450px at 15% 72%, rgba(255, 107, 0, 0.1), transparent 68%),
+                radial-gradient(740px 340px at 84% 76%, rgba(102, 157, 255, 0.11), transparent 72%),
+                linear-gradient(180deg, #090A11 0%, #090B12 42%, #07080E 100%);
+            background-attachment: fixed;
+        }
+
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .event-card {
+            background: linear-gradient(135deg, rgba(28, 29, 36, 0.74), rgba(20, 21, 28, 0.74));
+            border: 1px solid rgba(255, 255, 255, 0.13);
+            border-radius: var(--radius-lg);
+            padding: 1.75rem;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .event-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 107, 0, 0.4);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 107, 0, 0.1);
+        }
+
+        .event-card.live::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            border: 1px solid var(--accent);
+            opacity: 0.3;
+            pointer-events: none;
+            animation: border-pulse 2s infinite;
+        }
+
+        @keyframes border-pulse {
+            0% {
+                opacity: 0.2;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 0.2;
+            }
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            width: fit-content;
+        }
+
+        .badge-live {
+            background: rgba(255, 107, 0, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(255, 107, 0, 0.3);
+        }
+
+        .badge-live::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: pulse-dot 1.5s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+        }
+
+        .badge-upcoming {
+            background: rgba(142, 176, 255, 0.12);
+            color: #8EB0FF;
+            border: 1px solid rgba(142, 176, 255, 0.25);
+        }
+
+        .badge-ended {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .event-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+
+        .event-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .meta-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .progress-container {
+            margin-top: 0.5rem;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #FF8C32);
+            border-radius: inherit;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .countdown-wrap {
+            background: rgba(255, 107, 0, 0.04);
+            border: 1px solid rgba(255, 107, 0, 0.1);
+            border-radius: var(--radius-sm);
+            padding: 0.75rem;
+            text-align: center;
+        }
+
+        .countdown-time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent);
+            display: block;
+        }
+
+        .countdown-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-join {
+            width: 100%;
+            padding: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            margin-top: 0.5rem;
+        }
+
+        .no-events {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 5rem 2rem;
+            background: transparent;
+            border: 2px dashed rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+
+<body class="events-page">
+    <nav class="navbar" id="navbar"></nav>
+
+    <main class="page-content">
+        <div class="container" style="max-width: 1080px;">
+            <div class="page-header" style="text-align: center; margin-bottom: 3.5rem;">
+                <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1px; margin-bottom: 0.5rem;">
+                    Competitive <span style="color: var(--accent);">Events</span>
+                </h1>
+                <p style="font-size: 1.1rem; color: #D9D9DE; font-weight: 500;">Bid to enter. Dominate to win.</p>
+            </div>
+
+            <div id="eventsGrid" class="events-grid">
+                <!-- Data injected by JS -->
+                <div class="no-events">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 1rem; color: var(--text-muted);">Loading events...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/events.js"></script>
+</body>
+
+</html>

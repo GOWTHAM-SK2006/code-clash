@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friends — CodeClash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div class="bg-glow-container">
+        <div class="bg-glow-1"></div>
+        <div class="bg-glow-2"></div>
+    </div>
+
+    <nav class="navbar" id="navbar"></nav>
+
+    <main class="page-content">
+        <div class="container friends-container">
+            <div class="page-header friends-header">
+                <div>
+                    <h1>👥 Friends</h1>
+                    <p>Build your coding network and connect with others.</p>
+                </div>
+                <button id="openAddFriendBtn" class="btn btn-primary btn-lg" type="button">Add Friend</button>
+            </div>
+
+            <div id="friendsAlert" class="alert" style="display:none;"></div>
+
+            <section class="friends-section card">
+                <div class="friends-section-title">Your Friends</div>
+                <div id="friendsList" class="friends-list-grid">
+                    <div class="friends-placeholder">Loading friends...</div>
+                </div>
+            </section>
+
+            <section class="friends-section card">
+                <div class="friends-section-title">Received Requests</div>
+                <div id="receivedRequests" class="request-list">
+                    <div class="friends-placeholder">Loading received requests...</div>
+                </div>
+            </section>
+
+            <section class="friends-section card">
+                <div class="friends-section-title">Sent Requests</div>
+                <div id="sentRequests" class="request-list">
+                    <div class="friends-placeholder">Loading sent requests...</div>
+                </div>
+            </section>
+
+            <section id="allUsersSection" class="friends-section card all-users-panel" style="display:none;">
+                <div class="all-users-head">
+                    <div class="friends-section-title all-users-title">All Users</div>
+                    <button id="closeAddFriendBtn" class="btn btn-secondary btn-sm" type="button">Close</button>
+                </div>
+                <div class="all-users-search-wrap">
+                    <input id="allUsersSearch" class="input" type="text" placeholder="Search by name or username">
+                </div>
+                <div id="allUsers" class="user-list">
+                    <div class="friends-placeholder">Use search to find users.</div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/friends.js"></script>
+</body>
+
+</html>

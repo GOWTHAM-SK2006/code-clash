@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contest Arena — CodeClash</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        :root {
+            --glass-bg: rgba(15, 15, 20, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --accent-glow: rgba(255, 107, 0, 0.4);
+        }
+
+        body {
+            background-color: #050505;
+            background-image:
+                radial-gradient(circle at 10% 10%, rgba(255, 107, 0, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(139, 92, 246, 0.04) 0%, transparent 40%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Glow Blobs */
+        .glow-blob {
+            position: fixed;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            filter: blur(100px);
+            z-index: -1;
+            opacity: 0.1;
+            pointer-events: none;
+            animation: float 25s infinite alternate ease-in-out;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(-10%, -5%) scale(1);
+            }
+
+            100% {
+                transform: translate(5%, 10%) scale(1.1);
+            }
+        }
+
+        .contest-hero {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 120px 1.5rem 4rem;
+            position: relative;
+        }
+
+        /* Glassmorphism Card */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 40px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            padding: 4rem 3rem;
+            text-align: center;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .arena-card.live {
+            border-color: rgba(34, 197, 94, 0.4);
+            box-shadow: 0 0 50px rgba(34, 197, 94, 0.1);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.6rem 1.8rem;
+            border-radius: 100px;
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            margin-bottom: 2.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+        }
+
+        .pill-live {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: rgba(34, 197, 94, 0.3);
+            color: #4ade80;
+            animation: pulse-border-green 2s infinite;
+        }
+
+        @keyframes pulse-border-green {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.2);
+            }
+
+            50% {
+                box-shadow: 0 0 20px 0 rgba(34, 197, 94, 0.1);
+            }
+        }
+
+        .timer-big {
+            font-size: 6.5rem;
+            font-weight: 950;
+            color: #fff;
+            text-shadow: 0 0 40px rgba(255, 107, 0, 0.5);
+            letter-spacing: -4px;
+            margin: 1rem 0;
+            line-height: 0.9;
+        }
+
+        .timer-label {
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .eligibility-check {
+            margin-top: 3.5rem;
+            padding: 1.5rem 2rem;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Problem Section */
+        .problem-area-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .problem-list {
+            display: grid;
+            gap: 1.25rem;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .problem-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1.5rem 2rem;
+            border-radius: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .problem-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .problem-title {
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .problem-meta {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            margin-left: 2.2rem;
+        }
+
+        /* Animations */
+        .animate-pop-in {
+            animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .pulse-glow {
+            animation: pulse-glow 4s infinite ease-in-out;
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                opacity: 0.8;
+                filter: drop-shadow(0 0 10px rgba(255, 107, 0, 0.2));
+            }
+
+            50% {
+                opacity: 1;
+                filter: drop-shadow(0 0 30px rgba(255, 107, 0, 0.4));
+            }
+        }
+
+        /* Contest Mode Modals */
+        .contest-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .contest-modal {
+            background: #0f0f14;
+            border: 1px solid var(--accent);
+            border-radius: 32px;
+            max-width: 600px;
+            width: 100%;
+            padding: 3.5rem;
+            text-align: center;
+            box-shadow: 0 0 100px rgba(255, 107, 0, 0.2);
+        }
+
+        .contest-modal h2 {
+            font-size: 2.2rem;
+            font-weight: 950;
+            margin-bottom: 1.5rem;
+            color: #fff;
+            letter-spacing: -1px;
+        }
+
+        .contest-modal p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .rule-list {
+            text-align: left;
+            background: rgba(255, 107, 0, 0.05);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+            border: 1px solid rgba(255, 107, 0, 0.1);
+        }
+
+        .rule-item {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .rule-item:last-child { margin-bottom: 0; }
+
+        .dq-overlay {
+            background: #000;
+            color: #ef4444;
+            text-align: center;
+        }
+
+        .dq-overlay h1 {
+            font-size: 4rem;
+            font-weight: 950;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+        }
+
+        /* Hide Navbar during contest */
+        body.contest-locked .navbar {
+            display: none !important;
+        }
+        body.contest-locked .contest-hero {
+            padding-top: 4rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="glow-blob" style="top: 10%; left: -5%;"></div>
+    <div class="glow-blob"
+        style="bottom: 10%; right: -5%; background: radial-gradient(circle, #8b5cf6 0%, transparent 70%); opacity: 0.1;">
+    </div>
+
+    <nav class="navbar" id="navbar"></nav>
+
+    <!-- Agreement Modal -->
+    <div id="agreementModal" class="contest-modal-overlay" style="display: none;">
+        <div class="contest-modal animate-pop-in">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🛡️</div>
+            <h2>Arena Entrance Protocol</h2>
+            <p>You have been selected to compete. To ensure a fair battle, strict security protocols are now in effect.</p>
+            
+            <div class="rule-list">
+                <div class="rule-item">
+                    <span style="color:var(--accent);">●</span>
+                    <span>The system will automatically switch to <b>Full-Screen Mode</b>.</span>
+                </div>
+                <div class="rule-item">
+                    <span style="color:var(--accent);">●</span>
+                    <span>Exiting Full-Screen at any time will result in <b>disqualification</b>.</span>
+                </div>
+                <div class="rule-item">
+                    <span style="color:var(--accent);">●</span>
+                    <span>Switching tabs or windows will trigger an <b>automatic disqualification</b>.</span>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-lg" id="acceptAgreementBtn" style="width:100%; padding: 1.2rem; border-radius: 100px; font-weight:900;">
+                I ACCEPT & ENTER ARENA
+            </button>
+        </div>
+    </div>
+
+    <!-- Disqualified Overlay -->
+    <div id="dqOverlay" class="contest-modal-overlay dq-overlay" style="display: none;">
+        <div class="animate-pop-in">
+            <div style="font-size: 5rem; margin-bottom: 2rem;">🚫</div>
+            <h1>DISQUALIFIED</h1>
+            <p style="color: #ef4444; font-size: 1.2rem; max-width: 500px; margin: 0 auto 3rem; font-weight:700;">
+                You have been removed from this contest for violating the security protocol (exiting the arena or losing focus).
+            </p>
+            <button class="btn btn-secondary" onclick="window.location.href='/events.html'" style="padding: 1rem 3rem; border-radius: 100px; font-weight:800;">RETURN TO COMMAND CENTER</button>
+        </div>
+    </div>
+
+    <div class="contest-hero">
+        <main id="arenaCard" class="glass-card animate-pop-in">
+            <div id="contestStatus" class="status-pill">
+                <span class="pulse-dot"
+                    style="width: 8px; height: 8px; background: currentColor; border-radius: 50%; display: none;"></span>
+                Loading...
+            </div>
+
+            <h1 id="contestTitle"
+                style="font-size: 3.5rem; font-weight: 950; margin-bottom: 0.5rem; letter-spacing: -2px; color: #fff;">
+                Arena Entrance</h1>
+            <p id="eventParentTitle"
+                style="color: var(--text-secondary); font-size: 1.1rem; font-weight: 600; margin-bottom: 3rem;">Event
+                Title</p>
+
+            <div id="timerContainer" style="margin: 2rem 0;">
+                <div class="timer-label" id="timerLabel">Arena Opens In</div>
+                <div id="contestTimer" class="timer-big pulse-glow">00:00:00</div>
+            </div>
+
+            <div id="eligibilityMessage" class="eligibility-check">
+                <div style="background: rgba(255,107,0,0.1); padding: 0.5rem; border-radius: 12px;">
+                    <i data-lucide="shield-check" style="color: var(--accent); width: 24px; height: 24px;"></i>
+                </div>
+                <p style="color: var(--text-secondary); font-weight: 700;">Checking your eligibility...</p>
+            </div>
+
+            <div id="actionArea" style="display: none; margin-top: 3rem;">
+                <button class="btn btn-primary btn-lg" id="enterArenaBtn"
+                    style="padding: 1.2rem 4rem; border-radius: 100px; font-weight: 900; font-size: 1.2rem; box-shadow: 0 10px 30px var(--accent-glow);">
+                    ENTER ARENA 🔥
+                </button>
+            </div>
+        </main>
+
+        <section id="problemArea" style="display: none;" class="animate-pop-in">
+            <div class="problem-area-header">
+                <div>
+                    <h2 style="font-size: 2rem; font-weight: 950; color: #fff; letter-spacing: -1px;">Battle Objectives
+                    </h2>
+                    <p style="color: var(--text-muted); font-weight: 600; margin-top: 0.2rem;">Complete these challenges
+                        to secure victory</p>
+                </div>
+            </div>
+
+            <div id="problemList" class="problem-list">
+                <!-- Problems injected here -->
+            </div>
+        </section>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/contest.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,28 @@
+package com.codeclash.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class RegisterRequest {
+    @NotBlank(message = "Username/College ID is required")
+    private String username;
+    
+    @NotBlank(message = "Email is required")
+    private String email;
+    
+    @NotBlank(message = "Password is required")
+    private String password;
+    
+    @NotBlank(message = "Display name is required")
+    private String displayName;
+    
+    @NotBlank(message = "LeetCode username is compulsory")
+    private String leetcodeUsername;
+
+    @NotBlank(message = "Section is required")
+    private String section;
+}

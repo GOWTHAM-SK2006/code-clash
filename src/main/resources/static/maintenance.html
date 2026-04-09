@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance — CodeClash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0A0A0C;
+            --accent: #FF6B00;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            overflow: hidden;
+        }
+
+        .glow-sphere {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255, 107, 0, 0.15) 0%, rgba(10, 10, 12, 0) 70%);
+            border-radius: 50%;
+            filter: blur(40px);
+            z-index: -1;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .cog {
+            animation: rotate 10s linear infinite;
+        }
+
+        .cog-reverse {
+            animation: rotate 12s linear infinite reverse;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.5;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+        }
+
+        .pulse-glow {
+            animation: pulse 4s ease-in-out infinite;
+        }
+    </style>
+</head>
+
+<body class="flex items-center justify-center min-h-screen relative">
+    <!-- Background Elements -->
+    <div class="glow-sphere top-[-100px] left-[-100px] pulse-glow"></div>
+    <div class="glow-sphere bottom-[-100px] right-[-100px] pulse-glow" style="animation-delay: 2s;"></div>
+
+    <div class="text-center space-y-8 max-w-2xl px-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <div class="relative inline-block">
+            <div class="text-8xl mb-4 relative z-10">🛠️</div>
+            <div class="absolute inset-0 bg-orange-500/20 blur-3xl rounded-full"></div>
+        </div>
+
+        <div class="space-y-4">
+            <h1 class="text-5xl md:text-7xl font-black tracking-tight uppercase italic">
+                Under <span class="text-[#FF6B00]">Maintenance</span>
+            </h1>
+            <p class="text-gray-400 text-lg md:text-xl font-medium leading-relaxed max-w-lg mx-auto">
+                We're currently fine-tuning the arena for your next legendary battle.
+                CodeClash will be back online shortly.
+            </p>
+        </div>
+
+        <div class="flex items-center justify-center gap-4 pt-4">
+            <div class="w-12 h-1 h-px bg-white/10"></div>
+            <div class="flex gap-2">
+                <div class="w-2 h-2 bg-[#FF6B00] rounded-full animate-bounce"></div>
+                <div class="w-2 h-2 bg-[#FF6B00] rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                <div class="w-2 h-2 bg-[#FF6B00] rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+            </div>
+            <div class="w-12 h-1 h-px bg-white/10"></div>
+        </div>
+
+        <div class="pt-8">
+            <p class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">
+                Expected return within 15-30 minutes
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>

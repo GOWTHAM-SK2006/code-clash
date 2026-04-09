@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — CodeClash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="dashboard-page">
+    <nav class="navbar" id="navbar"></nav>
+
+    <main class="page-content">
+        <!-- Decorative Energy Blooms -->
+        <div class="energy-bloom" style="width: 400px; height: 400px; top: 10%; right: -100px; background: rgba(255, 107, 0, 0.15);"></div>
+        <div class="energy-bloom" style="width: 300px; height: 300px; bottom: 10%; left: -50px; background: rgba(102, 126, 234, 0.15);"></div>
+        
+        <div class="container">
+            <div class="page-header dashboard-header">
+                <h1>Dashboard</h1>
+                <p>Welcome back, <span id="userName" class="username-highlight"></span></p>
+            </div>
+
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card stat-card-coins">
+                    <div class="stat-value" id="totalCoins">—</div>
+                    <div class="stat-label">🪙 Total Coins</div>
+                </div>
+                <div class="stat-card stat-card-solved">
+                    <div class="stat-value" id="problemsSolved">—</div>
+                    <div class="stat-label">✅ Problems Solved</div>
+                </div>
+                <div class="stat-card stat-card-rank">
+                    <div class="stat-value" id="userRank">—</div>
+                    <div class="stat-label">🏆 Your Rank</div>
+                </div>
+                <div class="stat-card stat-card-users">
+                    <div class="stat-value" id="totalUsers">—</div>
+                    <div class="stat-label">👥 Total Users</div>
+                </div>
+            </div>
+
+            <div class="dashboard-actions">
+                <a href="problems.html" class="card card-glow action-card action-card-problems">
+                    <span class="action-icon">💻</span>
+                    <h3>Solve Problems</h3>
+                    <p>Challenge yourself with coding problems
+                        and earn coins.</p>
+                </a>
+                <a href="events.html" class="card card-glow action-card"
+                    style="border-color:var(--accent); background:rgba(255,107,0,0.05);">
+                    <span class="action-icon">🔥</span>
+                    <h3 style="color:var(--accent)">Weekly Events</h3>
+                    <p>Join live bidding to secure your spot
+                        in the weekly coding championship.</p>
+                </a>
+                <a href="battle-mode.html" class="card card-glow action-card action-card-battle">
+                    <span class="action-icon">⚔️</span>
+                    <h3>Start a Battle</h3>
+                    <p>Challenge another coder to a real-time
+                        1v1 coding duel.</p>
+                </a>
+            </div>
+
+
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+
+</html>

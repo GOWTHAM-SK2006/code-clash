@@ -1,0 +1,167 @@
+.
+├── CODE_EXECUTION.md
+├── Dockerfile
+├── judge-node
+│   ├── Dockerfile
+│   ├── package.json
+│   └── src
+│       ├── data
+│       │   └── problems.js
+│       ├── executor.js
+│       ├── problems.js
+│       ├── routes
+│       │   └── judgeRoutes.js
+│       ├── server.js
+│       ├── services
+│       │   ├── battleService.js
+│       │   ├── executor.js
+│       │   └── judgeService.js
+│       ├── utils
+│       │   └── inputNormalizer.js
+│       └── utils.js
+├── pom.xml
+├── project_structure.txt
+├── scripts
+│   ├── generate_testcases.py
+│   └── update_testcases.sql
+├── src
+│   └── main
+│       ├── java
+│       │   └── com
+│       │       └── codeclash
+│       │           ├── CodeClashApplication.java
+│       │           ├── config
+│       │           │   ├── CorsConfig.java
+│       │           │   ├── GlobalExceptionHandler.java
+│       │           │   ├── PasswordConfig.java
+│       │           │   └── SecurityConfig.java
+│       │           ├── controller
+│       │           │   ├── AdminController.java
+│       │           │   ├── AdminEventController.java
+│       │           │   ├── AuthController.java
+│       │           │   ├── BattleController.java
+│       │           │   ├── CoinController.java
+│       │           │   ├── FriendController.java
+│       │           │   ├── LeaderboardController.java
+│       │           │   ├── LearningController.java
+│       │           │   ├── LeetcodeController.java
+│       │           │   ├── NotificationController.java
+│       │           │   ├── ProblemController.java
+│       │           │   ├── SubmissionController.java
+│       │           │   ├── UserController.java
+│       │           │   └── UserEventController.java
+│       │           ├── dto
+│       │           │   ├── AdminChangePasswordRequest.java
+│       │           │   ├── AuthRequest.java
+│       │           │   ├── AuthResponse.java
+│       │           │   ├── BattleRequest.java
+│       │           │   ├── BattleSubmitRequest.java
+│       │           │   ├── ChangePasswordRequest.java
+│       │           │   ├── DashboardDto.java
+│       │           │   ├── FriendOverviewDto.java
+│       │           │   ├── FriendRequestDto.java
+│       │           │   ├── FriendUserDto.java
+│       │           │   ├── LeaderboardDto.java
+│       │           │   ├── RegisterRequest.java
+│       │           │   ├── SubmissionRequest.java
+│       │           │   └── SubmissionResponse.java
+│       │           ├── entity
+│       │           │   ├── Battle.java
+│       │           │   ├── BattleParticipant.java
+│       │           │   ├── BattleQueue.java
+│       │           │   ├── CoinTransaction.java
+│       │           │   ├── EventBid.java
+│       │           │   ├── Event.java
+│       │           │   ├── FriendRequest.java
+│       │           │   ├── FriendRequestStatus.java
+│       │           │   ├── Language.java
+│       │           │   ├── LeetcodeProfile.java
+│       │           │   ├── Lesson.java
+│       │           │   ├── Notification.java
+│       │           │   ├── Problem.java
+│       │           │   ├── Submission.java
+│       │           │   ├── Topic.java
+│       │           │   └── User.java
+│       │           ├── repository
+│       │           │   ├── BattleParticipantRepository.java
+│       │           │   ├── BattleQueueRepository.java
+│       │           │   ├── BattleRepository.java
+│       │           │   ├── CoinTransactionRepository.java
+│       │           │   ├── EventBidRepository.java
+│       │           │   ├── EventRepository.java
+│       │           │   ├── FriendRequestRepository.java
+│       │           │   ├── LanguageRepository.java
+│       │           │   ├── LeetcodeProfileRepository.java
+│       │           │   ├── LessonRepository.java
+│       │           │   ├── NotificationRepository.java
+│       │           │   ├── ProblemRepository.java
+│       │           │   ├── SubmissionRepository.java
+│       │           │   ├── TopicRepository.java
+│       │           │   └── UserRepository.java
+│       │           ├── security
+│       │           │   ├── JwtAuthFilter.java
+│       │           │   ├── JwtUtil.java
+│       │           │   └── MaintenanceFilter.java
+│       │           ├── service
+│       │           │   ├── AdminPanelService.java
+│       │           │   ├── AuthService.java
+│       │           │   ├── BattleService.java
+│       │           │   ├── CoinService.java
+│       │           │   ├── DockerSandboxService.java
+│       │           │   ├── EventService.java
+│       │           │   ├── FriendService.java
+│       │           │   ├── LeaderboardService.java
+│       │           │   ├── LearningService.java
+│       │           │   ├── LeetcodeSyncService.java
+│       │           │   ├── NotificationService.java
+│       │           │   ├── ProblemService.java
+│       │           │   ├── SubmissionService.java
+│       │           │   ├── TemplateValidationService.java
+│       │           │   └── UserService.java
+│       │           └── util
+│       │               └── StringUtil.java
+│       └── resources
+│           ├── application.yml
+│           ├── data.sql
+│           └── static
+│               ├── admin-dashboard.html
+│               ├── battle.html
+│               ├── battle-mode.html
+│               ├── battle-room.html
+│               ├── bidding.html
+│               ├── contest.html
+│               ├── contest-problem.html
+│               ├── css
+│               │   └── styles.css
+│               ├── dashboard.html
+│               ├── events.html
+│               ├── friends.html
+│               ├── index.html
+│               ├── intro.html
+│               ├── js
+│               │   ├── admin-dashboard.js
+│               │   ├── api.js
+│               │   ├── auth.js
+│               │   ├── battle.js
+│               │   ├── battle-mode.js
+│               │   ├── battle-room.js
+│               │   ├── bidding.js
+│               │   ├── contest.js
+│               │   ├── contest-problem.js
+│               │   ├── dashboard.js
+│               │   ├── events.js
+│               │   ├── friends.js
+│               │   ├── leaderboard.js
+│               │   ├── problems.js
+│               │   └── profile.js
+│               ├── leaderboard.html
+│               ├── learn.html
+│               ├── login.html
+│               ├── maintenance.html
+│               ├── problem.html
+│               ├── problems.html
+│               ├── profile.html
+│               └── register.html
+└── startup.log
+
+25 directories, 140 files

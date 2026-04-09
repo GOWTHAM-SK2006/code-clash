@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle Modes — CodeClash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <nav class="navbar" id="navbar"></nav>
+
+    <main class="page-content">
+        <div class="container">
+            <div class="page-header battle-mode-header">
+                <h1>⚔️ Choose Battle Mode</h1>
+                <p>Select your match type to continue</p>
+            </div>
+
+            <div class="battle-mode-grid">
+                <a href="battle.html" class="card card-glow battle-mode-card battle-mode-card-active">
+                    <span class="battle-mode-badge">Available</span>
+                    <h3>1 vs 1</h3>
+                    <p>Classic head-to-head coding duel with random opponent matching.</p>
+                    <span class="battle-mode-cta">Continue to 1v1 Arena →</span>
+                </a>
+
+                <button type="button" class="card battle-mode-card battle-mode-card-disabled" id="mode2v2Btn">
+                    <span class="battle-mode-badge battle-mode-badge-soon">Coming Soon</span>
+                    <h3>2 vs 2</h3>
+                    <p>Team battle mode will be available in a future update.</p>
+                    <span class="battle-mode-cta">Not available yet</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/battle-mode.js"></script>
+</body>
+
+</html>

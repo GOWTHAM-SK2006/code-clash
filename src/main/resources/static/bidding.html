@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Bidding — CodeClash</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        :root {
+            --glass-bg: rgba(15, 15, 20, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --accent-glow: rgba(255, 107, 0, 0.4);
+        }
+
+        body {
+            background-color: #050505;
+            background-image:
+                radial-gradient(circle at 0% 0%, rgba(255, 107, 0, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.03) 0%, transparent 50%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Glow Blobs */
+        .glow-blob {
+            position: fixed;
+            width: 40vw;
+            height: 40vw;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.15;
+            pointer-events: none;
+            animation: float 20s infinite alternate;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(-10%, -10%) scale(1);
+            }
+
+            100% {
+                transform: translate(10%, 10%) scale(1.1);
+            }
+        }
+
+        .bidding-layout {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 100px 1.5rem 3rem;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 2rem;
+            position: relative;
+        }
+
+        @media (max-width: 1024px) {
+            .bidding-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Glassmorphism Card Base */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .bid-hero {
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bid-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+
+        .bid-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.75rem;
+            color: var(--accent);
+            padding: 0.5rem 1.5rem;
+            border-radius: 100px;
+            background: rgba(255, 107, 0, 0.1);
+            border: 1px solid rgba(255, 107, 0, 0.2);
+            margin-bottom: 1.5rem;
+        }
+
+        .bid-status.live {
+            background: rgba(255, 107, 0, 0.15);
+            box-shadow: 0 0 20px rgba(255, 107, 0, 0.1);
+            animation: pulse-border 2s infinite;
+        }
+
+        @keyframes pulse-border {
+
+            0%,
+            100% {
+                border-color: rgba(255, 107, 0, 0.2);
+            }
+
+            50% {
+                border-color: rgba(255, 107, 0, 0.5);
+            }
+        }
+
+        .bid-event-title {
+            font-size: 2.5rem;
+            font-weight: 950;
+            letter-spacing: -1px;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #fff, #aaa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Super Timer */
+        .main-timer {
+            font-size: 5rem;
+            font-weight: 900;
+            font-family: 'Inter', system-ui, sans-serif;
+            color: #fff;
+            text-shadow: 0 0 30px rgba(255, 107, 0, 0.4);
+            letter-spacing: -2px;
+            margin: 1.5rem 0;
+            line-height: 1;
+        }
+
+        .timer-label {
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        /* Dashboard Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 2.5rem 0;
+        }
+
+        .stat-box {
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            text-align: left;
+        }
+
+        .stat-box p {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .stat-box h2 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #fff;
+        }
+
+        /* Super Bid Button */
+        .super-bid-container {
+            margin-top: 3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .btn-bid-super {
+            position: relative;
+            background: linear-gradient(135deg, var(--accent) 0%, #ff8c00 100%);
+            border: none;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 10px 40px rgba(255, 107, 0, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.2);
+            z-index: 10;
+        }
+
+        .btn-bid-super:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 20px 60px rgba(255, 107, 0, 0.5), inset 0 0 30px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-bid-super:active {
+            transform: scale(0.95);
+        }
+
+        .btn-bid-super .amount {
+            font-size: 2.5rem;
+            font-weight: 950;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .btn-bid-super .sub {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.9);
+            letter-spacing: 1px;
+            margin-top: 0.25rem;
+        }
+
+        /* Leaderboard Panel */
+        .leaderboard-panel {
+            padding: 2rem;
+            height: fit-content;
+        }
+
+        .lb-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .lb-row {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 16px;
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .lb-row.me {
+            background: rgba(255, 107, 0, 0.08);
+            border-color: rgba(255, 107, 0, 0.3);
+            box-shadow: 0 0 20px rgba(255, 107, 0, 0.05);
+        }
+
+        .lb-rank-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 0.9rem;
+            margin-right: 1rem;
+        }
+
+        .rank-1 {
+            background: linear-gradient(135deg, #FFD700 0%, #B8860B 100%);
+            color: #000;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .rank-2 {
+            background: linear-gradient(135deg, #E2E2E2 0%, #8E8E8E 100%);
+            color: #000;
+        }
+
+        .rank-3 {
+            background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
+            color: #fff;
+        }
+
+        .rank-other {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+        }
+
+        .lb-name {
+            flex: 1;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #eee;
+        }
+
+        .lb-bid {
+            font-weight: 900;
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+
+        /* Animations */
+        .animate-pop-in {
+            animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Floating effects */
+        .pulse-glow {
+            animation: pulse-glow 3s infinite;
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                filter: drop-shadow(0 0 10px rgba(255, 107, 0, 0.2));
+            }
+
+            50% {
+                filter: drop-shadow(0 0 30px rgba(255, 107, 0, 0.5));
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="glow-blob" style="top: 10%; left: -5%;"></div>
+    <div class="glow-blob"
+        style="bottom: 10%; right: -5%; background: radial-gradient(circle, #8b5cf6 0%, transparent 70%); opacity: 0.1;">
+    </div>
+
+    <nav class="navbar" id="navbar"></nav>
+
+    <div class="bidding-layout">
+        <main class="main-column">
+            <div class="glass-card bid-hero animate-pop-in">
+                <div class="bid-status" id="eventStatus">
+                    <span class="pulse-dot"
+                        style="width: 8px; height: 8px; background: currentColor; border-radius: 50%; display: none;"></span>
+                    Upcoming
+                </div>
+
+                <h1 class="bid-event-title" id="eventTitle">Loading Event...</h1>
+
+                <div id="timerContainer" style="margin: 2rem 0;">
+                    <div class="timer-label" id="timerLabel">Bidding Starts In</div>
+                    <div class="main-timer pulse-glow" id="mainTime">00:00:00</div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <p>Your Current Bid</p>
+                        <h2 id="userBid">0</h2>
+                    </div>
+                    <div class="stat-box">
+                        <p>Current Rank</p>
+                        <h2 id="userRank"># –</h2>
+                    </div>
+                </div>
+
+                <div id="bidAction" class="super-bid-container" style="display: none;">
+                    <button class="btn-bid-super" id="addBidBtn">
+                        <span class="amount">+100</span>
+                        <span class="sub">Bid Coins</span>
+                    </button>
+                    <p style="margin-top: 1.5rem; font-weight: 700; color: var(--text-secondary); font-size: 0.9rem;">
+                        Wallet Balance: <span id="userBalance" style="color: #fff;">0</span> 🪙
+                    </p>
+                </div>
+            </div>
+
+            <div id="resultCard" class="glass-card animate-pop-in"
+                style="display: none; margin-top: 2rem; padding: 3rem 2rem; text-align: center;">
+                <!-- Results dynamic injection -->
+            </div>
+        </main>
+
+        <aside class="glass-card leaderboard-panel animate-pop-in" style="animation-delay: 0.1s;">
+            <div class="lb-header">
+                <div style="background: rgba(255,107,0,0.1); padding: 0.5rem; border-radius: 12px;">
+                    <i data-lucide="trophy" style="color: var(--accent); width: 20px; height: 20px;"></i>
+                </div>
+                <div style="flex: 1;">
+                    <h3 style="font-size: 1rem; font-weight: 900; color: #fff;">Live Bidders</h3>
+                    <p id="lbTotalBidders" style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">0
+                        users active</p>
+                </div>
+            </div>
+
+            <div id="lbContainer">
+                <div class="lb-empty" style="padding: 4rem 1rem; text-align: center; color: var(--text-muted);">
+                    <i data-lucide="users" style="width: 40px; height: 40px; margin-bottom: 1rem; opacity: 0.2;"></i>
+                    <p style="font-weight: 600;">Waiting for participation...</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/bidding.js"></script>
+</body>
+
+</html>

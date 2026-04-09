@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle Room — CodeClash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        :root {
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --neon-orange: #FF6B00;
+            --neon-blue: #00D1FF;
+        }
+
+        :fullscreen .navbar { display: none !important; }
+        :fullscreen .page-content { padding: 0 !important; }
+        :fullscreen main { margin: 0 !important; }
+
+        body {
+            background: radial-gradient(circle at top, #14141A, #09090C);
+            overflow-x: hidden;
+        }
+
+        .battle-view-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: battle-entrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        /* Modernized Timer */
+        .timer-v2 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-align: center;
+            color: var(--neon-orange);
+            text-shadow: 0 0 20px rgba(255, 107, 0, 0.4);
+            margin-bottom: 2rem;
+            letter-spacing: -1px;
+        }
+
+        /* Combat Arena V2 */
+        .combat-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .player-card-v2 {
+            flex: 1;
+            max-width: 400px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .player-card-v2::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--neon-orange);
+            box-shadow: 0 0 15px var(--neon-orange);
+        }
+
+        .player-card-v2.opponent::before {
+            background: var(--neon-blue);
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        .player-card-v2:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .player-avatar-v2 {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #1A1A24, #2D2D3A);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .player-info-v2 {
+            flex: 1;
+        }
+
+        .player-name-v2 {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .player-status-v2 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+            animation: pulse-glow 2s infinite;
+        }
+
+        .energy-bar-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 99px;
+            margin-top: 0.75rem;
+            overflow: hidden;
+        }
+
+        .energy-bar-fill {
+            width: 75%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-orange), #FF8C32);
+            border-radius: 99px;
+            position: relative;
+        }
+
+        .player-card-v2.opponent .energy-bar-fill {
+            background: linear-gradient(90deg, var(--neon-blue), #50E3FF);
+        }
+
+        .energy-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            background-size: 200% 100%;
+            animation: progress-shimmer 2s infinite linear;
+        }
+
+        .vs-badge-v2 {
+            width: 60px;
+            height: 60px;
+            background: #000;
+            border: 2px solid var(--neon-orange);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1.25rem;
+            color: var(--neon-orange);
+            box-shadow: 0 0 20px rgba(255, 107, 0, 0.3);
+            animation: vs-float 3s ease-in-out infinite;
+            z-index: 2;
+        }
+
+        /* Grid Layout V2 */
+        .battle-grid-v2 {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .battle-panel-v2 {
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header-v2 {
+            padding: 1rem 1.25rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-title-v2 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .panel-content-v2 {
+            padding: 1.25rem;
+            flex: 1;
+        }
+
+        /* IDE Frame */
+        .ide-frame-v2 {
+            background: #0D0D0F;
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .ide-tabs-v2 {
+            display: flex;
+            background: #141418;
+            border-bottom: 1px solid #1F1F24;
+            padding: 0 0.5rem;
+        }
+
+        .ide-tab-v2 {
+            padding: 0.75rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+        }
+
+        .ide-tab-v2.active {
+            color: var(--neon-orange);
+            border-bottom-color: var(--neon-orange);
+            background: rgba(255, 107, 0, 0.05);
+        }
+
+        .tab-icon {
+            font-size: 1rem;
+        }
+
+        /* Action Dock */
+        .action-dock-v2 {
+            display: flex;
+            gap: 1rem;
+            padding: 1.25rem;
+            background: rgba(13, 13, 15, 0.8);
+            border-top: 1px solid #1F1F24;
+        }
+
+        .action-btn-v2 {
+            padding: 0.85rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .btn-run-v2 {
+            background: #1A1A22;
+            color: white;
+            border-color: #2D2D3A;
+            flex: 1;
+        }
+
+        .btn-run-v2:hover {
+            background: #25252F;
+            border-color: #3D3D4F;
+            transform: translateY(-2px);
+        }
+
+        .btn-submit-v2 {
+            background: linear-gradient(135deg, #FF6B00, #FF8C32);
+            color: black;
+            flex: 2;
+            box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3);
+        }
+
+        .btn-submit-v2:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(255, 107, 0, 0.4);
+        }
+
+        .btn-cancel-v2 {
+            background: #1A1A22;
+            color: #FF3D00;
+            border-color: rgba(255, 61, 0, 0.2);
+            flex: 1;
+        }
+
+        .btn-cancel-v2:hover {
+            background: rgba(255, 61, 0, 0.05);
+            border-color: rgba(255, 61, 0, 0.4);
+        }
+
+        /* Glass Scrollbar */
+        .panel-content-v2::-webkit-scrollbar { width: 4px; }
+        .panel-content-v2::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+
+        /* Badge overrides */
+        .badge-fixed {
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 800;
+        }
+
+        /* Cinematic Result Screen */
+        @keyframes result-zoom-in {
+            0% { opacity: 0; transform: scale(0.85) translateY(20px); filter: blur(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+        }
+
+        @keyframes result-shine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        @keyframes result-float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.05); }
+        }
+
+        .result-screen-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            backdrop-filter: blur(24px);
+            background: radial-gradient(circle at center, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 1) 100%);
+            animation: fadeIn 0.5s ease-out both;
+        }
+
+        .result-card-v2 {
+            max-width: 620px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 32px;
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+            animation: result-zoom-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both 0.2s;
+        }
+
+        .result-card-v2::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+            animation: result-shine 4s infinite linear;
+            pointer-events: none;
+        }
+
+        .result-icon-v2 {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            display: block;
+            animation: result-float 4s ease-in-out infinite;
+        }
+
+        .result-title-v2 {
+            font-size: 2.25rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            margin-bottom: 0.75rem;
+            background: linear-gradient(to bottom, #fff, #aaa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .result-desc-v2 {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            max-width: 440px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .result-action-v2 {
+            padding: 1.25rem 2.5rem;
+            font-size: 1rem;
+            border-radius: 99px;
+            font-weight: 800;
+            color: #000;
+            background: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .result-action-v2:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Success Theme */
+        .theme-success .result-title-v2 { background: linear-gradient(to bottom, #7FFF7F, #00C853); -webkit-background-clip: text; background-clip: text; }
+        .theme-success .result-action-v2 { background: var(--success); box-shadow: 0 10px 30px rgba(0, 200, 83, 0.3); }
+
+        /* Danger Theme */
+        .theme-danger .result-title-v2 { background: linear-gradient(to bottom, #FF8080, #FF3D00); -webkit-background-clip: text; background-clip: text; }
+        .theme-danger .result-action-v2 { background: var(--danger); box-shadow: 0 10px 30px rgba(255, 61, 0, 0.3); color: white; }
+
+        /* Accent Theme */
+        .theme-accent .result-title-v2 { background: linear-gradient(to bottom, #FFD07F, #FF6B00); -webkit-background-clip: text; background-clip: text; }
+        .theme-accent .result-action-v2 { background: var(--accent); box-shadow: 0 10px 30px rgba(255, 107, 0, 0.3); }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar" id="navbar"></nav>
+
+    <main class="page-content">
+        <div class="container battle-view-container">
+            <div id="battleView">
+                <div class="timer-v2" id="timer">15:00</div>
+
+                <div class="combat-header">
+                    <div class="player-card-v2" id="p1Card">
+                        <div class="player-avatar-v2" id="p1Avatar">G</div>
+                        <div class="player-info-v2">
+                            <h3 class="player-name-v2" id="p1Name">Player 1</h3>
+                            <div class="player-status-v2">
+                                <span class="status-dot"></span>
+                                Coding...
+                            </div>
+                            <div class="energy-bar-container">
+                                <div class="energy-bar-fill" style="width: 85%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="vs-badge-v2">VS</div>
+
+                    <div class="player-card-v2 opponent" id="p2Card">
+                        <div class="player-avatar-v2" id="p2Avatar">T</div>
+                        <div class="player-info-v2">
+                            <h3 class="player-name-v2" id="p2Name">Player 2</h3>
+                            <div class="player-status-v2">
+                                <span class="status-dot"></span>
+                                Coding...
+                            </div>
+                            <div class="energy-bar-container">
+                                <div class="energy-bar-fill" style="width: 60%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="battle-grid-v2">
+                    <!-- Left Sidebar: Problem Details -->
+                    <aside class="battle-panel-v2">
+                        <div class="panel-header-v2">
+                            <span class="panel-title-v2">Problem Statement</span>
+                            <span id="difficultyBadge" class="badge badge-fixed">Easy</span>
+                        </div>
+                        <div class="panel-content-v2" style="max-height: 800px; overflow-y: auto;">
+                            <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 1rem;" id="battleProblemTitle">Problem Name</h2>
+                            <p id="battleProblemDesc" style="color: var(--text-secondary); line-height: 1.7; margin-bottom: 2rem; white-space: pre-wrap; font-size: 0.95rem;"></p>
+
+                            <div id="formatSection" style="display: none; margin-bottom: 2rem;">
+                                <div style="margin-bottom: 1.25rem;">
+                                    <h4 class="panel-title-v2" style="font-size: 0.7rem; margin-bottom: 0.5rem; color: var(--accent);">Input Format</h4>
+                                    <p id="inputFormat" style="color: var(--text-secondary); font-size: 0.85rem; background: rgba(255,255,255,0.03); padding: 0.75rem; border-radius: 10px; border: 1px solid var(--glass-border); white-space: pre-wrap;"></p>
+                                </div>
+                                <div>
+                                    <h4 class="panel-title-v2" style="font-size: 0.7rem; margin-bottom: 0.5rem; color: var(--accent);">Output Format</h4>
+                                    <p id="outputFormat" style="color: var(--text-secondary); font-size: 0.85rem; background: rgba(255,255,255,0.03); padding: 0.75rem; border-radius: 10px; border: 1px solid var(--glass-border); white-space: pre-wrap;"></p>
+                                </div>
+                            </div>
+
+                            <div class="testcases-section">
+                                <h4 class="panel-title-v2" style="font-size: 0.7rem; margin-bottom: 0.75rem;">Sample Testcases</h4>
+                                <div id="testcaseTabs" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;"></div>
+                                
+                                <div style="background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--glass-border); padding: 1rem;">
+                                    <div style="margin-bottom: 1rem;">
+                                        <p style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: #555; margin-bottom: 0.4rem;">Input</p>
+                                        <pre id="testcaseInput" style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: #eee; white-space: pre-wrap;"></pre>
+                                    </div>
+                                    <div>
+                                        <p style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: #555; margin-bottom: 0.4rem;">Expected Output</p>
+                                        <pre id="testcaseExpected" style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--success); white-space: pre-wrap;"></pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <!-- Main Area: Editor -->
+                    <div class="battle-panel-v2">
+                        <div class="panel-header-v2">
+                            <div style="display: flex; gap: 0.5rem;">
+                                <span class="badge badge-accent">Solution.py</span>
+                                <span class="badge" style="opacity: 0.5;">Editorial</span>
+                            </div>
+                            <select id="languageSelect" class="input" style="width: auto; height: 32px; font-size: 0.75rem; padding: 0 0.5rem; border-radius: 6px; background: #000; color: var(--accent); border-color: rgba(255,107,0,0.3);">
+                                <option value="python">Python</option>
+                                <option value="java">Java</option>
+                                <option value="c">C</option>
+                                <option value="cpp">C++</option>
+                                <option value="javascript">JavaScript</option>
+                            </select>
+                        </div>
+                        
+                        <div class="ide-frame-v2">
+                            <div id="battleEditor" style="height: 600px;"></div>
+                        </div>
+
+                        <div class="action-dock-v2">
+                            <button onclick="runBattleCode()" class="action-btn-v2 btn-run-v2">
+                                <span>▶</span> Run Code
+                            </button>
+                            <button onclick="submitBattleSolution()" class="action-btn-v2 btn-submit-v2">
+                                <span>⚡</span> Submit Solution
+                            </button>
+                            <button onclick="cancelMatch()" class="action-btn-v2 btn-cancel-v2">
+                                <span>❌</span> Cancel Match
+                            </button>
+                        </div>
+
+                        <!-- Run Output Overlay -->
+                        <div id="runOutput" style="display: none; padding: 1.25rem; background: rgba(0,0,0,0.4); border-top: 1px solid var(--glass-border);">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                                <div>
+                                    <h4 id="judgeStatusTitle" style="font-weight: 800; font-size: 1.1rem; color: var(--success);">Accepted</h4>
+                                    <p id="judgeRuntime" style="font-size: 0.75rem; color: var(--text-secondary);"></p>
+                                </div>
+                                <div id="judgeCaseBadges" style="display: flex; gap: 0.4rem;"></div>
+                            </div>
+                            <pre id="runOutputText" style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #ddd; max-height: 200px; overflow-y: auto;"></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="battleResult" style="display:none;margin-top:1.5rem;"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Battle Terms Overlay -->
+    <div id="battleTermsModal" style="
+        display:none;
+        position:fixed;
+        inset:0;
+        z-index:100000;
+        background:rgba(0,0,0,0.94);
+        backdrop-filter:blur(6px);
+        align-items:center;
+        justify-content:center;
+        padding:1rem;
+    ">
+        <div class="card"
+            style="max-width:620px;width:100%;padding:1.5rem 1.3rem;text-align:left;border:1px solid var(--border);">
+            <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:0.75rem;color:var(--text-primary);">Battle Terms &
+                Conditions</h2>
+            <p style="color:var(--text-secondary);margin-bottom:0.8rem;line-height:1.6;">
+                To ensure fair play, this battle is monitored in fullscreen mode.
+            </p>
+            <ul style="color:var(--text-secondary);margin:0 0 1rem 1rem;line-height:1.7;">
+                <li>Fullscreen is mandatory throughout the battle.</li>
+                <li>Exiting fullscreen is treated as a rule violation.</li>
+                <li>On violation, you are disqualified and your opponent is declared winner.</li>
+            </ul>
+            <p style="color:var(--text-secondary);margin-bottom:1rem;line-height:1.6;">
+                Click <strong>Agree & Start Battle</strong> to continue. Fullscreen will launch automatically.
+            </p>
+            <button id="agreeTermsBtn" class="btn btn-primary btn-lg" style="width:100%;">Agree & Start Battle</button>
+        </div>
+    </div>
+
+    <!-- Fullscreen Warning Overlay -->
+    <div id="fullscreenWarning" style="
+        display:none;
+        position:fixed;
+        inset:0;
+        z-index:99999;
+        background:rgba(0,0,0,0.92);
+        backdrop-filter:blur(6px);
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        text-align:center;
+        gap:1.2rem;
+    ">
+        <div style="font-size:3.5rem;">⚠️</div>
+        <h2 style="color:#FF6B00;font-size:1.8rem;font-weight:800;margin:0;">Fullscreen Exit Detected!</h2>
+        <p style="color:#ccc;font-size:1.1rem;max-width:480px;margin:0;">You must stay in fullscreen during a battle.
+            Returning to fullscreen automatically...</p>
+        <p style="color:#888;font-size:0.9rem;">This is an anti-cheat measure to ensure fair play.</p>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
+    <script src="js/battle-room.js"></script>
+</body>
+
+</html>
