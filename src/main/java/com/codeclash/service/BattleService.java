@@ -423,6 +423,7 @@ public class BattleService {
                 BattleParticipant participant = new BattleParticipant();
                 participant.setBattle(battle);
                 participant.setUser(user);
+                participant.setTeamId(1);
                 participantRepository.save(participant);
 
                 return battle;
@@ -446,6 +447,7 @@ public class BattleService {
                 BattleParticipant participant = new BattleParticipant();
                 participant.setBattle(battle);
                 participant.setUser(user);
+                participant.setTeamId(2);
                 participantRepository.save(participant);
 
                 battle.setStatus("ACTIVE");

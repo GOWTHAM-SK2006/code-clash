@@ -556,9 +556,9 @@ function showResult(result) {
 
     if (result.status === 'CANCELLED' && isWinner) {
         theme = 'theme-success';
-        icon = '🏆';
-        title = 'Victory!';
-        desc = 'Opponent violated battle rules. Your team has been declared the winner!';
+        icon = '🎉';
+        title = 'Win';
+        desc = 'Opponent left the match. Tactical victory secured!';
     } else if (result.status === 'CANCELLED' && (tabSwitchForfeitTriggered || fullscreenForfeitTriggered)) {
         theme = 'theme-danger';
         icon = '😔';
@@ -577,9 +577,9 @@ function showResult(result) {
     } else if (isWinner) {
         theme = 'theme-success';
         icon = '🎉';
-        title = 'Victory!';
+        title = 'Win';
         const reward = result.problem?.difficulty === 'Hard' ? 60 : (result.problem?.difficulty === 'Medium' ? 40 : 30);
-        desc = `Excellent work! Your duo wins. +${reward} Coins added to your balance.`;
+        desc = `Excellent work! Objective secured. +${reward} Coins awarded.`;
     } else if (result.winnerId || result.winningTeamId) {
         theme = 'theme-danger';
         icon = '😔';
