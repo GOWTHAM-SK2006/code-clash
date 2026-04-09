@@ -26,20 +26,13 @@ public class AuthService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already registered");
         }
-        if (request.getLeetcodeUsername() == null || request.getLeetcodeUsername().trim().isEmpty()) {
-            throw new RuntimeException("LeetCode username is compulsory");
-        }
-        if (userRepository.existsByLeetcodeUsername(request.getLeetcodeUsername().trim())) {
-            throw new RuntimeException("This LeetCode username is already linked to another account");
-        }
-
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .displayName(request.getDisplayName() != null ? request.getDisplayName() : request.getUsername())
                 .leetcodeUsername(request.getLeetcodeUsername())
-                .section(request.getSection().toUpperCase())
+                .section(request.getSection() != null ? request.getSection().toUpperCase() : null)
                 .build();
 
         userRepository.save(user);

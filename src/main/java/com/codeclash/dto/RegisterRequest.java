@@ -20,9 +20,7 @@ public class RegisterRequest {
     @NotBlank(message = "Display name is required")
     private String displayName;
     
-    @NotBlank(message = "LeetCode username is compulsory")
     private String leetcodeUsername;
 
-    @NotBlank(message = "Section is required")
     private String section;
 }

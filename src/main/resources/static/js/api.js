@@ -73,10 +73,10 @@ const api = {
         });
     },
 
-    register(username, email, password, displayName, leetcodeUsername, section) {
+    register(username, email, password, displayName) {
         return this.request('/auth/register', {
             method: 'POST',
-            body: JSON.stringify({ username, email, password, displayName, leetcodeUsername, section })
+            body: JSON.stringify({ username, email, password, displayName })
         });
     },
 

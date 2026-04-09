@@ -4,71 +4,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register — CodeClash</title>
+    <title>Join the Clash — CodeClash</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .auth-background {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+            background: #05060A;
+        }
+
+        .auth-card-premium {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: card-pop-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        .form-input-premium {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            color: white;
+            width: 100%;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-input-premium:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .auth-header h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to bottom, #fff, #A0A0A0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .auth-header p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+    </style>
 </head>
 
 <body>
+    <div class="auth-background">
+        <div class="energy-bloom" style="width: 600px; height: 600px; top: -10%; left: -10%; background: radial-gradient(circle, rgba(255, 107, 0, 0.15) 0%, transparent 70%);"></div>
+        <div class="energy-bloom" style="width: 500px; height: 500px; bottom: -5%; right: -5%; background: radial-gradient(circle, rgba(102, 157, 255, 0.1) 0%, transparent 70%); animation-delay: -5s;"></div>
+    </div>
+
     <nav class="navbar" id="navbar"></nav>
 
-    <main class="auth-container">
-        <div class="auth-card">
-            <h1>Create account</h1>
-            <p class="subtitle">Join CodeClash and start coding</p>
+    <main class="flex items-center justify-center min-h-screen pt-20 px-4">
+        <div class="auth-card-premium">
+            <div class="auth-header text-center">
+                <h1>Create Account</h1>
+                <p>Join the elite league of coders</p>
+            </div>
 
-            <div id="alert" class="alert alert-error"></div>
+            <div id="alert" class="alert alert-error mb-6" style="display: none;"></div>
 
-            <form id="registerForm">
+            <form id="registerForm" class="space-y-4">
                 <div class="form-group">
-                    <label for="displayName">Display Name</label>
-                    <input type="text" id="displayName" class="form-input" placeholder="How should we call you?"
-                        required>
+                    <label class="block text-sm font-semibold text-gray-400 mb-2">Display Name</label>
+                    <input type="text" id="displayName" class="form-input-premium" placeholder="How should we call you?" required>
                 </div>
                 <div class="form-group">
-                    <label for="username">College ID</label>
-                    <input type="text" id="username" class="form-input" placeholder="Enter your College ID" required>
+                    <label class="block text-sm font-semibold text-gray-400 mb-2">Username</label>
+                    <input type="text" id="username" class="form-input-premium" placeholder="Enter your Username" required>
                 </div>
                 <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" class="form-input" placeholder="your@email.com" required>
+                    <label class="block text-sm font-semibold text-gray-400 mb-2">Email Address</label>
+                    <input type="email" id="email" class="form-input-premium" placeholder="your@email.com" required>
                 </div>
                 <div class="form-group">
-                    <label for="leetcodeUsername">LeetCode Username</label>
-                    <input type="text" id="leetcodeUsername" class="form-input" placeholder="Your LeetCode username" required>
-                </div>
-                <div class="form-group">
-                    <label for="section">Section</label>
-                    <select id="section" class="form-input" required>
-                        <option value="" disabled selected>Select your section</option>
-                        <option value="A">A</option><option value="B">B</option><option value="C">C</option>
-                        <option value="D">D</option><option value="E">E</option><option value="F">F</option>
-                        <option value="G">G</option><option value="H">H</option><option value="I">I</option>
-                        <option value="J">J</option><option value="K">K</option><option value="L">L</option>
-                        <option value="M">M</option><option value="N">N</option><option value="O">O</option>
-                        <option value="P">P</option><option value="Q">Q</option><option value="R">R</option>
-                        <option value="S">S</option><option value="T">T</option><option value="U">U</option>
-                        <option value="V">V</option><option value="W">W</option><option value="X">X</option>
-                        <option value="Y">Y</option><option value="Z">Z</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <div class="password-wrapper">
-                        <input type="password" id="password" class="form-input" placeholder="Min 6 characters" required
-                            minlength="6">
-                        <button type="button" class="password-toggle" id="passwordToggle" aria-label="Toggle password visibility">
-                            <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
+                    <label class="block text-sm font-semibold text-gray-400 mb-2">Secure Password</label>
+                    <div class="relative">
+                        <input type="password" id="password" class="form-input-premium" placeholder="Min 6 characters" required minlength="6">
+                        <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors" id="passwordToggle">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
                         </button>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-lg" style="width:100%">Create Account</button>
+                
+                <button type="submit" class="btn btn-primary btn-lg w-full mt-4 btn-shimmer">
+                    Launch Account
+                </button>
             </form>
 
-            <p class="auth-footer">Already have an account? <a href="login.html">Log in</a></p>
+            <p class="text-center mt-8 text-gray-400 text-sm font-medium">
+                Already part of the clash? <a href="login.html" class="text-orange-500 hover:text-orange-400 transition-colors">Log in</a>
+            </p>
         </div>
     </main>
 
@@ -80,35 +126,32 @@
             window.location.href = 'dashboard.html';
         }
 
-        // Toggle Password Visibility
         const passwordInput = document.getElementById('password');
         const passwordToggle = document.getElementById('passwordToggle');
-        const eyeIcon = `
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
+        
+        const eyeIconHtml = `
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
         `;
-        const eyeOffIcon = `
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                <line x1="1" y1="1" x2="23" y2="23"></line>
+        const eyeOffIconHtml = `
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
             </svg>
         `;
 
         passwordToggle.addEventListener('click', () => {
             const isPassword = passwordInput.getAttribute('type') === 'password';
             passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
-            passwordToggle.innerHTML = isPassword ? eyeOffIcon : eyeIcon;
+            passwordToggle.innerHTML = isPassword ? eyeOffIconHtml : eyeIconHtml;
         });
 
-        // Check if registrations are allowed
         (async () => {
             try {
                 const res = await fetch('/api/auth/registration-status');
                 const status = await res.json();
                 if (!status.allowed) {
-                    // Freeze the entire form
                     const form = document.getElementById('registerForm');
                     const inputs = form.querySelectorAll('input, button');
                     inputs.forEach(el => {
@@ -117,29 +160,33 @@
                         el.style.cursor = 'not-allowed';
                     });
 
-                    // Show closed banner
                     const banner = document.createElement('div');
-                    banner.style.cssText = 'background: rgba(255,60,60,0.15); border: 1px solid #ff4444; color: #ff6b6b; padding: 1rem; border-radius: 10px; text-align: center; font-weight: 700; margin-bottom: 1rem; font-size: 0.95rem;';
-                    banner.innerHTML = '🚫 Registrations are currently closed by the administrator.';
+                    banner.style.cssText = 'background: rgba(255,60,60,0.1); border: 1px solid rgba(255,60,60,0.2); color: #ff6b6b; padding: 1rem; border-radius: 12px; text-align: center; font-weight: 600; margin-bottom: 2rem; font-size: 0.9rem;';
+                    banner.innerHTML = '🚫 Registrations are currently closed by administration.';
                     form.parentNode.insertBefore(banner, form);
                 }
-            } catch (_) { /* allow form if check fails */ }
+            } catch (_) { }
         })();
 
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            
             const displayName = document.getElementById('displayName').value;
             const username = document.getElementById('username').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const leetcodeUsername = document.getElementById('leetcodeUsername').value;
-            const section = document.getElementById('section').value;
 
             try {
-                const data = await api.register(username, email, password, displayName, leetcodeUsername, section);
+                btn.disabled = true;
+                btn.innerHTML = '<span class="animate-spin mr-2">⏳</span> Launching...';
+                const data = await api.register(username, email, password, displayName);
                 api.setAuth(data);
                 window.location.href = 'dashboard.html';
             } catch (err) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
                 showAlert('alert', err.message);
             }
         });
@@ -147,3 +194,4 @@
 </body>
 
 </html>
+html>
