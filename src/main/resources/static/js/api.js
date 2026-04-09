@@ -168,10 +168,10 @@ const api = {
     cancelFindBattle() {
         return this.request('/battles/cancel-find', { method: 'POST' });
     },
-    inviteTeamBattle(friendId) {
+    inviteTeamBattle(friendId, difficulty) {
         return this.request('/battles/invite-team', {
             method: 'POST',
-            body: JSON.stringify({ friendId })
+            body: JSON.stringify({ friendId, difficulty })
         });
     },
     acceptBattleInvite(inviteId) {

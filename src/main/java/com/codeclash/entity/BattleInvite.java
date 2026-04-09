@@ -32,6 +32,9 @@ public class BattleInvite {
     private String status = "PENDING"; // PENDING, ACCEPTED, DECLINED, EXPIRED
 
     @Column
+    private String difficulty;
+
+    @Column
     private Long battleId;
 
     @Column(nullable = false, updatable = false)

@@ -208,7 +208,7 @@ public class BattleService {
         }
 
         @Transactional
-        public Map<String, Object> sendBattleInvite(String requesterUsername, Long friendId) {
+        public Map<String, Object> sendBattleInvite(String requesterUsername, Long friendId, String difficulty) {
                 User sender = userRepository.findByUsername(requesterUsername)
                                 .orElseThrow(() -> new RuntimeException("User not found"));
                 User friend = userRepository.findById(friendId)
@@ -229,6 +229,7 @@ public class BattleService {
                 BattleInvite invite = BattleInvite.builder()
                                 .sender(sender)
                                 .receiver(friend)
+                                .difficulty(difficulty != null ? difficulty : "Easy")
                                 .status("PENDING")
                                 .build();
                 inviteRepository.save(invite);
@@ -262,8 +263,12 @@ public class BattleService {
                         throw new RuntimeException("Invite is no longer pending");
                 }
 
-                // Create the battle
-                List<Problem> problems = problemRepository.findByDifficulty("Easy");
+                // Create the battle using stored difficulty
+                String difficulty = invite.getDifficulty() != null ? invite.getDifficulty() : "Easy";
+                List<Problem> problems = problemRepository.findByDifficulty(difficulty);
+                if (problems.isEmpty()) {
+                        problems = problemRepository.findByDifficulty("Easy");
+                }
                 Problem problem = problems.get(new java.util.Random().nextInt(problems.size()));
 
                 Battle battle = new Battle();

@@ -21,7 +21,7 @@
                     <div class="absolute inset-0 bg-[#FF6B00]/20 blur-3xl rounded-full"></div>
                     <span class="text-6xl relative z-10 block animate-float">⚔️</span>
                 </div>
-                <h1 class="text-4xl font-black tracking-tight text-white">1 vs 1 Battle Arena</h1>
+                <h1 id="arenaTitle" class="text-4xl font-black tracking-tight text-white">1 vs 1 Battle Arena</h1>
                 <p class="text-gray-400 font-medium max-w-lg mx-auto leading-relaxed">Enter the arena, outsmart your
                     opponent, and claim your victory in a high-stakes coding duel.</p>
             </div>
@@ -400,6 +400,20 @@
             transition: all 0.5s ease;
         }
     </style>
+
+    <!-- Friend Invitation Modal -->
+    <div id="inviteModal" class="modal-overlay hidden">
+        <div class="card modal-card">
+            <div class="modal-header">
+                <h2>BATTLE RECRUITMENT</h2>
+                <button class="modal-close" id="closeInviteModal">&times;</button>
+            </div>
+            <p id="inviteModalDifficulty" style="text-align:center; color:var(--accent); font-weight:800; font-size:0.75rem; text-transform:uppercase; letter-spacing:2px; margin-bottom:1rem;"></p>
+            <div class="friend-list-container" id="friendList">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+    </div>
 
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
