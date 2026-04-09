@@ -105,43 +105,9 @@
             applyFilters();
         });
 
-        // Filter functionality
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const filter = btn.getAttribute('data-filter');
-                if (filter === currentFilter) return;
-
-                // Update UI
-                filterBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentFilter = filter;
-
-                applyFilters();
-            });
-        });
-
         async function applyFilters() {
-            if (!currentUser) {
-                try {
-                    currentUser = await api.getProfile();
-                    // Derive department if not present (backend might not have it yet if not updated)
-                    if (!currentUser.department) {
-                        currentUser.department = api.getDepartment(currentUser.username);
-                    }
-                } catch (e) {
-                    console.error("Failed to load current user for filtering", e);
-                }
-            }
-
             let filtered = [...allRankedData];
             const searchQuery = document.getElementById('leaderboardSearch')?.value.toLowerCase().trim() || '';
-
-            if (currentFilter === 'department' && currentUser?.department) {
-                filtered = filtered.filter(u => u.department === currentUser.department);
-            } else if (currentFilter === 'section' && currentUser?.section && currentUser?.department) {
-                filtered = filtered.filter(u => u.section === currentUser.section && u.department === currentUser.department);
-            }
 
             if (searchQuery) {
                 filtered = filtered.filter(u => 
@@ -150,12 +116,11 @@
                 );
             }
 
-        // Recalculate ranks for the filtered list
-        filtered.forEach((u, i) => u.rank = i + 1);
-        
-        const anim = currentFilter === 'overall' ? 'animate-up' : 'animate-right';
-        renderLeaderboard(filtered, searchQuery.length > 0 || currentFilter !== 'overall', anim);
-    }
+            // Recalculate ranks for the filtered list
+            filtered.forEach((u, i) => u.rank = i + 1);
+            
+            renderLeaderboard(filtered, searchQuery.length > 0, 'animate-up');
+        }
 
     // Modal handling
     window.showUserStats = (username) => {
