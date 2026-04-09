@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -503,12 +503,6 @@ public class BattleService {
                         return Map.of("status", "JOINED", "battleId", battle.getId());
                 }
         }
-
-        private boolean isUserOnline(User user) {
-                if (user == null || user.getLastActiveAt() == null) return false;
-                return user.getLastActiveAt().isAfter(LocalDateTime.now().minusMinutes(5));
-        }
-
         private void saveParticipant(Battle battle, User user, Integer teamId) {
                 BattleParticipant participant = new BattleParticipant();
                 participant.setBattle(battle);
@@ -543,12 +537,6 @@ public class BattleService {
                 };
         }
 
-        private void saveParticipant(Battle battle, User user) {
-                BattleParticipant participant = new BattleParticipant();
-                participant.setBattle(battle);
-                participant.setUser(user);
-                participantRepository.save(participant);
-        }
 
         public Optional<Battle> getActiveBattleForUser(String username) {
                 User user = userRepository.findByUsername(username)
