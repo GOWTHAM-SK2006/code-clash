@@ -55,6 +55,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const queryError = document.getElementById('queryError');
     const querySubmitSpinner = document.getElementById('querySubmitSpinner');
 
+    // Check-in Elements
+    const checkInCard = document.getElementById('checkInCard');
+    const claimCheckInBtn = document.getElementById('claimCheckInBtn');
+    const checkInBtnText = document.getElementById('checkInBtnText');
+    const checkInTimer = document.getElementById('checkInTimer');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const checkInIcon = document.getElementById('checkInIcon');
+
+    let checkInCooldownTimer = null;
+    const CHECKIN_COOLDOWN_HOURS = 12;
+    const CLAIM_SOUND_URL = 'https://www.myinstants.com/media/sounds/coin-mario.mp3'; // Awesome coin sound
+
     let allTransactions = [];
 
     function updateAvatar(username) {
@@ -136,6 +148,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (emailEl) emailEl.textContent = user.email;
             if (coinsEl) coinsEl.textContent = user.coins;
             updateAvatar(user.displayName && user.displayName.trim() ? user.displayName : user.username);
+
+            // Handle Check-in State
+            handleCheckInState(user.lastCheckIn);
 
             // Display Student Year & Department
             const yearBadge = document.getElementById('studentYearBadge');
@@ -469,6 +484,93 @@ document.addEventListener('DOMContentLoaded', async () => {
             } finally {
                 submitQueryBtn.disabled = false;
                 querySubmitSpinner.classList.add('hidden');
+            }
+        });
+    }
+
+    // Check-in Logic
+    function handleCheckInState(lastCheckIn) {
+        if (checkInCooldownTimer) clearInterval(checkInCooldownTimer);
+
+        if (!lastCheckIn) {
+            enableCheckIn();
+            return;
+        }
+
+        const lastCheckInDate = new Date(lastCheckIn);
+        const now = new Date();
+        const diffMs = now - lastCheckInDate;
+        const cooldownMs = CHECKIN_COOLDOWN_HOURS * 60 * 60 * 1000;
+
+        if (diffMs >= cooldownMs) {
+            enableCheckIn();
+        } else {
+            disableCheckIn(cooldownMs - diffMs);
+        }
+    }
+
+    function enableCheckIn() {
+        claimCheckInBtn.disabled = false;
+        checkInBtnText.textContent = 'Claim Now';
+        checkInIcon.textContent = '📅';
+        checkInTimer.classList.add('hidden');
+    }
+
+    function disableCheckIn(remainingMs) {
+        claimCheckInBtn.disabled = true;
+        checkInBtnText.textContent = 'Claimed';
+        checkInIcon.textContent = '✅';
+        checkInTimer.classList.remove('hidden');
+
+        function updateTimer() {
+            const now = new Date();
+            const remaining = remainingMs - (new Date() - startTime);
+            
+            if (remaining <= 0) {
+                clearInterval(checkInCooldownTimer);
+                enableCheckIn();
+                return;
+            }
+
+            const hours = Math.floor(remaining / (1000 * 60 * 60));
+            const mins = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+            const secs = Math.floor((remaining % (1000 * 60)) / 1000);
+
+            timerDisplay.textContent = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        const startTime = new Date();
+        updateTimer();
+        checkInCooldownTimer = setInterval(updateTimer, 1000);
+    }
+
+    function playClaimSound() {
+        try {
+            const audio = new Audio(CLAIM_SOUND_URL);
+            audio.volume = 0.5;
+            audio.play();
+        } catch (e) {
+            console.error('Failed to play sound:', e);
+        }
+    }
+
+    if (claimCheckInBtn) {
+        claimCheckInBtn.addEventListener('click', async () => {
+            claimCheckInBtn.disabled = true;
+            checkInBtnText.textContent = 'Claiming...';
+
+            try {
+                const response = await api.checkIn();
+                playClaimSound();
+                
+                // Refresh data
+                await loadProfileData();
+                
+                // Show success message (optional, but good for feedback)
+                // You could use a toast here if available.
+            } catch (error) {
+                alert(error.message || 'Failed to claim check-in');
+                enableCheckIn();
             }
         });
     }

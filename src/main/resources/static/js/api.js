@@ -90,6 +90,12 @@ const api = {
         });
     },
 
+    checkIn() {
+        return this.request('/users/check-in', {
+            method: 'POST'
+        });
+    },
+
     // Friends
     getFriendsOverview() { return this.request('/friends/overview'); },
     sendFriendRequest(targetUserId) {

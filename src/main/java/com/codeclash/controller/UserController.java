@@ -39,4 +39,15 @@ public class UserController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+
+    @PostMapping("/check-in")
+    public ResponseEntity<?> checkIn(Authentication auth) {
+        try {
+            User user = (User) auth.getPrincipal();
+            userService.checkIn(user.getUsername());
+            return ResponseEntity.ok(Map.of("message", "Check-in successful! +30 Coins"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 }
