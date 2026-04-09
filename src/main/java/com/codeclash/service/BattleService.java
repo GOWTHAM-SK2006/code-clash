@@ -181,8 +181,8 @@ public class BattleService {
                 battleRepository.save(battle);
 
                 // Add both participants
-                saveParticipant(battle, user);
-                saveParticipant(battle, opponent);
+                saveParticipant(battle, user, 1);
+                saveParticipant(battle, opponent, 2);
 
                 return Map.of(
                                 "status", "matched",

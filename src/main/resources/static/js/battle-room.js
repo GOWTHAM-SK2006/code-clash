@@ -243,10 +243,13 @@ async function loadBattleDetails() {
         // Determine user team
         const me = api.getUser();
         if (me && participants) {
-            const myPart = participants.find(p => p.user?.userId === me.userId);
+            // Backend User entity has 'id' field, not 'userId'
+            const myPart = participants.find(p => p.user?.id === me.userId);
             if (myPart) {
                 userTeamId = myPart.teamId;
-                console.log('Synchronized to Team:', userTeamId);
+                console.log('[Sync] Synchronized to Team:', userTeamId);
+            } else {
+                console.warn('[Sync] Could not identify user team. me.userId:', me.userId, 'participants:', participants);
             }
         }
 
@@ -1098,13 +1101,21 @@ function initWebSocket() {
         // --- Real-time battle status sync (instant result) ---
         stompClient.subscribe(`/topic/battle/${currentBattleId}/status`, (message) => {
             const data = JSON.parse(message.body);
+            console.log('[WebSocket] Status Update Received:', data);
             if (data.status === 'FINISHED' || data.status === 'CANCELLED') {
-                // Fetch full battle details and show result immediately
+                // If it was already shown (e.g. by our own submit), ignore duplicate
+                if (resultShown) return;
+
+                // Attempt to show result with broadcast data immediately for maximum speed
+                // Then refresh with full data if possible
+                showResult(data);
+
                 api.getBattle(currentBattleId).then(fullData => {
+                    // Update the screen with full data (like coins won) if needed
+                    // Re-triggering showResult is safe due to the resultShown guard inside it
                     showResult(fullData.battle);
-                }).catch(() => {
-                    // Fallback: use broadcast data directly
-                    showResult(data);
+                }).catch(err => {
+                    console.error('[WebSocket] Failed to fetch full battle details:', err);
                 });
             }
         });
