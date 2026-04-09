@@ -82,6 +82,19 @@ async function findRandomBattle(difficulty) {
     const mode = urlParams.get('mode');
 
     if (mode === '2v2') {
+        // Check coin balance first
+        const costMap = { 'Easy': 15, 'Medium': 20, 'Hard': 30 };
+        const cost = costMap[difficulty] || 15;
+        try {
+            const balance = await api.getCoinBalance();
+            const coins = typeof balance === 'object' ? (balance.coins ?? balance.balance ?? 0) : Number(balance);
+            if (coins < cost) {
+                showNoCoinsBanner(difficulty, cost, coins);
+                return;
+            }
+        } catch (e) {
+            // Let backend handle it if check fails
+        }
         openRecruitmentModal(difficulty);
         return;
     }

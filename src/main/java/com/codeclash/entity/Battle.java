@@ -35,6 +35,9 @@ public class Battle {
     private Long winnerId;
 
     @Column
+    private Integer winningTeamId; // 1 or 2
+
+    @Column
     @Builder.Default
     private LocalDateTime startedAt = LocalDateTime.now();
 

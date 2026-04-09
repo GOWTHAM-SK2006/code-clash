@@ -239,6 +239,16 @@ async function loadBattleDetails() {
         document.getElementById('battleProblemDesc').textContent = battle.problem?.description || '';
         currentProblem = battle.problem || null;
 
+        // Determine user team
+        const me = api.getUser();
+        if (me && participants) {
+            const myPart = participants.find(p => p.user?.userId === me.userId);
+            if (myPart) {
+                userTeamId = myPart.teamId;
+                console.log('Synchronized to Team:', userTeamId);
+            }
+        }
+
         // Input/Output Format
         const formatSection = document.getElementById('formatSection');
         const inputFormatEl = document.getElementById('inputFormat');
@@ -541,36 +551,40 @@ function showResult(result) {
     let title = 'Result';
     let desc = '';
 
-    if (result.status === 'CANCELLED' && result.winnerId === user?.userId) {
+    const isWinner = result.winningTeamId ? (result.winningTeamId === userTeamId) : (result.winnerId === user?.userId);
+    const isDraw = (result.status === 'CANCELLED' || result.status === 'FINISHED') && !result.winnerId && !result.winningTeamId;
+
+    if (result.status === 'CANCELLED' && isWinner) {
         theme = 'theme-success';
         icon = '🏆';
         title = 'Victory!';
-        desc = 'Opponent violated battle rules. You have been declared the winner!';
+        desc = 'Opponent violated battle rules. Your team has been declared the winner!';
     } else if (result.status === 'CANCELLED' && (tabSwitchForfeitTriggered || fullscreenForfeitTriggered)) {
         theme = 'theme-danger';
         icon = '😔';
-        title = 'Opponent Won';
-        desc = tabSwitchForfeitTriggered ? 'Reason: Tab switch violation detected.' : 'Reason: Fullscreen exit detected.';
-    } else if (result.status === 'CANCELLED' && !result.winnerId) {
+        title = 'Defeat';
+        desc = tabSwitchForfeitTriggered ? 'Reason: Team disqualified due to tab switch violation.' : 'Reason: Team disqualified due to fullscreen exit.';
+    } else if (isDraw) {
         theme = 'theme-accent';
         icon = '⏱️';
         title = 'Draw';
-        desc = 'Battle time is over. This match ended with no winner.';
+        desc = 'Match time is over. No team managed to complete the challenge.';
     } else if (result.status === 'CANCELLED') {
         theme = 'theme-danger';
         icon = '❌';
         title = 'Match Forfeited';
-        desc = 'You left the match. Your opponent took the victory.';
-    } else if (result.winnerId === user?.userId) {
+        desc = 'Team member left the match. The mission was aborted.';
+    } else if (isWinner) {
         theme = 'theme-success';
         icon = '🎉';
-        title = 'You Won!';
-        desc = '+50 Coins have been added to your balance! Excellent work.';
-    } else if (result.winnerId) {
+        title = 'Victory!';
+        const reward = result.problem?.difficulty === 'Hard' ? 60 : (result.problem?.difficulty === 'Medium' ? 40 : 30);
+        desc = `Excellent work! Your duo wins. +${reward} Coins added to your balance.`;
+    } else if (result.winnerId || result.winningTeamId) {
         theme = 'theme-danger';
         icon = '😔';
         title = 'Defeat';
-        desc = 'The solution submitted was incorrect. Keep practicing!';
+        desc = 'The mission objective was not met. Keep training!';
     } else {
         // Still processing
         resultEl.innerHTML = `

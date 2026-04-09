@@ -214,6 +214,12 @@ public class BattleService {
                 User friend = userRepository.findById(friendId)
                                 .orElseThrow(() -> new RuntimeException("Friend not found"));
 
+                // Check entry fee
+                int entryFee = getEntryFeeByDifficulty(difficulty);
+                if (!coinService.hasEnoughCoins(sender, entryFee)) {
+                        throw new RuntimeException("Insufficient coins. " + difficulty + " team recruitment requires " + entryFee + " coins.");
+                }
+
                 // Check if friend is online
                 if (!isUserOnline(friend)) {
                         throw new RuntimeException("Friend is currently offline");
@@ -245,6 +251,9 @@ public class BattleService {
                         )
                 );
 
+                // Deduct coins from requester
+                coinService.spendCoins(sender, entryFee, "2v2 Battle Recruitment Entry Fee (" + (difficulty != null ? difficulty : "Easy") + ")");
+
                 return Map.of("status", "sent", "inviteId", invite.getId());
         }
 
@@ -265,6 +274,14 @@ public class BattleService {
 
                 String difficulty = invite.getDifficulty() != null ? invite.getDifficulty() : "Easy";
                 
+                int entryFee = getEntryFeeByDifficulty(difficulty);
+                if (!coinService.hasEnoughCoins(receiver, entryFee)) {
+                        throw new RuntimeException("Insufficient coins to join this " + difficulty + " mission (" + entryFee + " required).");
+                }
+                
+                // Deduct coins from receiver
+                coinService.spendCoins(receiver, entryFee, "2v2 Battle Mission Acceptance (" + difficulty + ")");
+
                 // 1. Check if ANY team is already waiting for this difficulty in 2v2
                 Optional<Battle> waitingBattle = battleRepository
                         .findFirstByModeAndStatusAndProblemDifficultyIgnoreCaseOrderByStartedAtAsc("2v2", "WAITING", difficulty);
@@ -475,27 +492,36 @@ public class BattleService {
 
                 if (correct && battle.getWinnerId() == null) {
                         battle.setWinnerId(user.getId());
+                        battle.setWinningTeamId(myEntry.getTeamId());
                         battle.setStatus("FINISHED");
                         battle.setEndedAt(LocalDateTime.now());
                         battleRepository.save(battle);
-                        int winnerReward = getEntryFeeByDifficulty(battle.getProblem().getDifficulty()) * 2;
-                        coinService.awardCoins(user, winnerReward, "Battle victory reward (2x) #" + battleId);
+                        
+                        int fee = getEntryFeeByDifficulty(battle.getProblem().getDifficulty());
+                        int winnerReward = fee * 2;
+                        
+                        // Award BOTH members of the winning team
+                        participants.stream()
+                                .filter(p -> p.getTeamId().equals(myEntry.getTeamId()))
+                                .forEach(p -> coinService.awardCoins(p.getUser(), winnerReward, "2v2 Battle Victory Reward (2x) #" + battleId));
+                                
                 } else if (!correct && battle.getWinnerId() == null) {
-                        // Current user failed, declare opponent as winner immediately
-                        BattleParticipant opponentEntry = participants.stream()
-                                        .filter(p -> !p.getUser().getId().equals(user.getId()))
-                                        .findFirst()
-                                        .orElse(null);
-                        if (opponentEntry != null) {
-                                User opponent = opponentEntry.getUser();
-                                battle.setWinnerId(opponent.getId());
-                                battle.setStatus("FINISHED");
-                                battle.setEndedAt(LocalDateTime.now());
-                                battleRepository.save(battle);
-                                int winnerReward = getEntryFeeByDifficulty(battle.getProblem().getDifficulty()) * 2;
-                                coinService.awardCoins(opponent, winnerReward,
-                                                "Battle victory (opponent failed submission) #" + battleId);
-                        }
+                        // Current team failed (or just user?), find opponent team
+                        // In 2v2, if one fails, the other team wins immediately
+                        int opponentTeamId = (myEntry.getTeamId() == 1) ? 2 : 1;
+                        
+                        battle.setWinnerId(null); // Or pick any opponent ID
+                        battle.setWinningTeamId(opponentTeamId);
+                        battle.setStatus("FINISHED");
+                        battle.setEndedAt(LocalDateTime.now());
+                        battleRepository.save(battle);
+                        
+                        int fee = getEntryFeeByDifficulty(battle.getProblem().getDifficulty());
+                        int winnerReward = fee * 2;
+                        
+                        participants.stream()
+                                .filter(p -> p.getTeamId().equals(opponentTeamId))
+                                .forEach(p -> coinService.awardCoins(p.getUser(), winnerReward, "2v2 Victory (Opponent failed mission) #" + battleId));
                 }
 
                 return battle;
@@ -566,20 +592,19 @@ public class BattleService {
                                 .findFirst()
                                 .orElseThrow(() -> new RuntimeException("Not a participant of this battle"));
 
-                BattleParticipant opponentEntry = participants.stream()
-                                .filter(p -> !p.getUser().getId().equals(cancellingEntry.getUser().getId()))
-                                .findFirst()
-                                .orElseThrow(() -> new RuntimeException("Opponent not found"));
-
-                User opponent = opponentEntry.getUser();
-                int reward = getEntryFeeByDifficulty(battle.getProblem().getDifficulty()) * 2;
+                int opponentTeamId = (cancellingEntry.getTeamId() == 1) ? 2 : 1;
+                int fee = getEntryFeeByDifficulty(battle.getProblem().getDifficulty());
+                int reward = fee * 2;
 
                 battle.setStatus("CANCELLED");
-                battle.setWinnerId(opponent.getId());
+                battle.setWinningTeamId(opponentTeamId);
                 battle.setEndedAt(LocalDateTime.now());
                 battleRepository.save(battle);
 
-                coinService.awardCoins(opponent, reward, "Battle cancel win reward (2x) #" + battleId);
+                // Award BOTH members of the opponent team
+                participants.stream()
+                        .filter(p -> p.getTeamId().equals(opponentTeamId))
+                        .forEach(p -> coinService.awardCoins(p.getUser(), reward, "Battle cancel win reward (2x) #" + battleId));
 
                 return battle;
         }
@@ -592,7 +617,8 @@ public class BattleService {
                 User user = userRepository.findByUsername(username)
                                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-                participantRepository.findByBattleId(battleId).stream()
+                List<BattleParticipant> participants = participantRepository.findByBattleId(battleId);
+                BattleParticipant timeoutEntry = participants.stream()
                                 .filter(p -> p.getUser().getId().equals(user.getId()))
                                 .findFirst()
                                 .orElseThrow(() -> new RuntimeException("Not a participant"));
@@ -601,7 +627,21 @@ public class BattleService {
                         return battle;
                 }
 
-                return concludeBattleAsDraw(battle);
+                // In 2v2, if one timeouts, the other team wins
+                int opponentTeamId = (timeoutEntry.getTeamId() == 1) ? 2 : 1;
+                int fee = getEntryFeeByDifficulty(battle.getProblem().getDifficulty());
+                int reward = fee * 2;
+                
+                battle.setStatus("FINISHED");
+                battle.setWinningTeamId(opponentTeamId);
+                battle.setEndedAt(LocalDateTime.now());
+                battleRepository.save(battle);
+                
+                participants.stream()
+                        .filter(p -> p.getTeamId().equals(opponentTeamId))
+                        .forEach(p -> coinService.awardCoins(p.getUser(), reward, "Battle victory (opponent timeout) #" + battleId));
+
+                return battle;
         }
 
         public Battle getBattle(Long id) {
@@ -699,10 +739,21 @@ public class BattleService {
                         return battle;
                 }
 
-                battle.setStatus("CANCELLED");
+                battle.setStatus("FINISHED");
                 battle.setWinnerId(null);
+                battle.setWinningTeamId(null);
                 battle.setEndedAt(LocalDateTime.now());
-                return battleRepository.save(battle);
+                battle = battleRepository.save(battle);
+                
+                // Refund entry fee to all active participants
+                List<BattleParticipant> participants = participantRepository.findByBattleId(battle.getId());
+                int fee = getEntryFeeByDifficulty(battle.getProblem().getDifficulty());
+                
+                for (var p : participants) {
+                    coinService.awardCoins(p.getUser(), fee, "Battle Draw Refund #" + battle.getId());
+                }
+
+                return battle;
         }
 
         private boolean evaluateBattleSubmission(Problem problem, String userCode, String language) {
@@ -866,13 +917,16 @@ public class BattleService {
                 if (participant.isPresent()) {
                     Battle battle = participant.get().getBattle();
                     if ("WAITING".equals(battle.getStatus()) && "2v2".equals(battle.getMode())) {
-                        // Notify all participants of cancellation
+                        // Notify all participants of cancellation and refund
                         List<BattleParticipant> members = getBattleParticipants(battle.getId());
+                        int fee = getEntryFeeByDifficulty(battle.getProblem().getDifficulty());
+                        
                         for (var m : members) {
+                            coinService.awardCoins(m.getUser(), fee, "2v2 Recruitment Aborted Refund #" + battle.getId());
                             messagingTemplate.convertAndSend("/topic/notifications/" + m.getUser().getUsername(),
                                 Map.of(
                                     "type", "BATTLE_CANCELLED",
-                                    "message", "2v2 Recruitment was aborted by a teammate."
+                                    "message", "2v2 Recruitment aborted. Fee refunded."
                                 )
                             );
                         }
