@@ -57,6 +57,14 @@ public class User implements UserDetails {
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer level = 1;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer xp = 0;
+
     @Column
     private LocalDateTime lastCheckIn;
 

@@ -25,6 +25,26 @@
             <div class="page-header dashboard-header">
                 <h1>Dashboard</h1>
                 <p>Welcome back, <span id="userName" class="username-highlight"></span></p>
+                
+                <!-- NEW: Level & XP Section -->
+                <div class="level-progression-container">
+                    <div class="level-badge-container">
+                        <span class="level-label">RANK LEVEL</span>
+                        <div class="level-value" id="userLevel">0</div>
+                    </div>
+                    
+                    <div class="xp-progress-wrapper">
+                        <div class="xp-header">
+                            <span class="xp-label">EXPERIENCE POINTS</span>
+                            <span class="xp-stats" id="xpStats">0 / 0 XP</span>
+                        </div>
+                        <div class="xp-bar-container">
+                            <div class="xp-bar-fill" id="xpBarFill" style="width: 0%">
+                                <div class="xp-bar-shimmer"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="stats-grid" id="statsGrid">

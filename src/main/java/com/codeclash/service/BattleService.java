@@ -35,6 +35,7 @@ public class BattleService {
         private final AdminPanelService adminPanelService;
         private final BattleInviteRepository inviteRepository;
         private final SimpMessagingTemplate messagingTemplate;
+        private final UserService userService;
 
         public BattleService(BattleRepository battleRepository,
                         BattleParticipantRepository participantRepository,
@@ -47,7 +48,8 @@ public class BattleService {
                         ProblemService problemService,
                         AdminPanelService adminPanelService,
                         BattleInviteRepository inviteRepository,
-                        SimpMessagingTemplate messagingTemplate) {
+                        SimpMessagingTemplate messagingTemplate,
+                        UserService userService) {
                 this.battleRepository = battleRepository;
                 this.participantRepository = participantRepository;
                 this.problemRepository = problemRepository;
@@ -60,6 +62,7 @@ public class BattleService {
                 this.adminPanelService = adminPanelService;
                 this.inviteRepository = inviteRepository;
                 this.messagingTemplate = messagingTemplate;
+                this.userService = userService;
         }
 
         private void broadcastBattleStatus(Battle battle) {
@@ -664,7 +667,13 @@ public class BattleService {
                         // Award BOTH members of the winning team
                         participants.stream()
                                 .filter(p -> p.getTeamId().equals(myEntry.getTeamId()))
-                                .forEach(p -> coinService.awardCoins(p.getUser(), winnerReward, "2v2 Battle Victory Reward (2x) #" + battleId));
+                                .forEach(p -> {
+                                    coinService.awardCoins(p.getUser(), winnerReward, "2v2 Battle Victory Reward (2x) #" + battleId);
+                                    userService.addXp(p.getUser(), 50);
+                                });
+
+                        // Also award participation XP to everyone (+20 XP)
+                        participants.forEach(p -> userService.addXp(p.getUser(), 20));
                                 
                 } else if (!correct && battle.getWinnerId() == null) {
                         // Current team failed (or just user?), find opponent team
@@ -682,7 +691,12 @@ public class BattleService {
                         
                         participants.stream()
                                 .filter(p -> p.getTeamId().equals(opponentTeamId))
-                                .forEach(p -> coinService.awardCoins(p.getUser(), winnerReward, "2v2 Victory (Opponent failed mission) #" + battleId));
+                                .forEach(p -> {
+                                    coinService.awardCoins(p.getUser(), winnerReward, "2v2 Victory (Opponent failed mission) #" + battleId);
+                                    userService.addXp(p.getUser(), 50);
+                                });
+                                
+                        participants.forEach(p -> userService.addXp(p.getUser(), 20));
                 }
 
 

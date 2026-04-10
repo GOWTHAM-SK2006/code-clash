@@ -62,8 +62,31 @@ public class UserService {
                 .problemsSolved(solvedCount)
                 .userRank(rank)
                 .totalUsers((long) ranked.size())
+                .level(user.getLevel() != null ? user.getLevel() : 1)
+                .xp(user.getXp() != null ? user.getXp() : 0)
+                .nextLevelXp(100 * (user.getLevel() != null ? user.getLevel() : 1))
                 .checkInTimer(calculateCheckInTimer(user))
                 .build();
+    }
+
+    @Transactional
+    public void addXp(User user, int amount) {
+        if (amount <= 0) return;
+        
+        int currentLevel = user.getLevel() != null ? user.getLevel() : 1;
+        int currentXp = user.getXp() != null ? user.getXp() : 0;
+        
+        currentXp += amount;
+        
+        // Level up logic: next level threshold = 100 * currentLevel
+        while (currentXp >= 100 * currentLevel) {
+            currentXp -= 100 * currentLevel;
+            currentLevel++;
+        }
+        
+        user.setLevel(currentLevel);
+        user.setXp(currentXp);
+        userRepository.save(user);
     }
 
     private String calculateCheckInTimer(User user) {
@@ -101,5 +124,6 @@ public class UserService {
         userRepository.save(user);
 
         coinService.awardCoins(user, 30, "Daily Check-in Reward");
+        addXp(user, 10);
     }
 }

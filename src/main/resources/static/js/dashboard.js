@@ -25,11 +25,24 @@
         const dash = await api.getDashboard();
         document.getElementById('userName').textContent = dash.displayName || dash.username;
         
+        // --- Level & XP Logic ---
+        const userLevel = dash.level || 1;
+        const currentXp = dash.xp || 0;
+        const nextLevelXp = dash.nextLevelXp || 100;
+        const xpPercent = (currentXp / nextLevelXp) * 100;
+
+        document.getElementById('userLevel').textContent = userLevel;
+        document.getElementById('xpStats').textContent = `${currentXp} / ${nextLevelXp} XP`;
+        
         // Trigger count-up/down animations
         setTimeout(() => {
             animateValue('totalCoins', 0, dash.totalCoins || 0, 1500);
             animateValue('userRank', Math.max(dash.userRank, dash.totalUsers) || 100, dash.userRank || 1, 2000, '#');
             animateValue('totalUsers', 0, dash.totalUsers || 0, 1000);
+            
+            // Animate XP Bar
+            const bar = document.getElementById('xpBarFill');
+            if (bar) bar.style.width = `${xpPercent}%`;
         }, 300);
 
         initCheckIn(dash.checkInTimer);
@@ -37,6 +50,46 @@
     } catch (err) {
         console.error('Dashboard Error:', err);
         document.getElementById('userName').textContent = api.getUser()?.displayName || '';
+    }
+
+    // --- Animation Helpers ---
+    function triggerXpGainEffect(amount) {
+        // Floating text
+        const floatText = document.createElement('div');
+        floatText.className = 'xp-float-text';
+        floatText.textContent = `+${amount} XP 🔥`;
+        
+        // Position near level badge
+        const badge = document.querySelector('.level-badge-container');
+        if (badge) {
+            const rect = badge.getBoundingClientRect();
+            floatText.style.left = `${rect.left + rect.width / 2}px`;
+            floatText.style.top = `${rect.top}px`;
+        } else {
+            floatText.style.left = '50%';
+            floatText.style.top = '20%';
+        }
+        
+        document.body.appendChild(floatText);
+        setTimeout(() => floatText.remove(), 1500);
+        
+        // Play level-up sound if it's a big gain?
+        if (amount >= 50) {
+            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3');
+            audio.play().catch(() => {});
+        }
+    }
+
+    function triggerLevelUpBurst() {
+        const burst = document.createElement('div');
+        burst.className = 'level-up-burst';
+        document.body.appendChild(burst);
+        
+        // Powerful Sound
+        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3');
+        audio.play().catch(() => {});
+        
+        setTimeout(() => burst.remove(), 1000);
     }
 
     function initCheckIn(timerStr) {
@@ -94,12 +147,24 @@
                 triggerCoinAnimation(btnRect, targetRect);
 
                 // Update UI after small delay and trigger lightning blast
-                setTimeout(() => {
+                setTimeout(async () => {
                     for(let i=0; i<5; i++) setTimeout(triggerLightningStrike, i * 100);
                     
                     const currentCoins = parseInt(document.getElementById('totalCoins').textContent.replace(/,/g, '')) || 0;
                     animateValue('totalCoins', currentCoins, currentCoins + 30, 1000);
                     
+                    // Award XP locally for instant feedback
+                    triggerXpGainEffect(10);
+                    
+                    // Refresh data to sync Level/XP with backend
+                    const activeDash = await api.getDashboard();
+                    const nextLevelXp = activeDash.nextLevelXp || 100;
+                    const xpPercent = (activeDash.xp / nextLevelXp) * 100;
+                    
+                    document.getElementById('userLevel').textContent = activeDash.level;
+                    document.getElementById('xpStats').textContent = `${activeDash.xp} / ${nextLevelXp} XP`;
+                    document.getElementById('xpBarFill').style.width = `${xpPercent}%`;
+
                     initCheckIn("12:00:00");
                 }, 800);
 

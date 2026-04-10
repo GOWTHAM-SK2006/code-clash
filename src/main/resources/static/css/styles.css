@@ -3190,3 +3190,127 @@ main > .container > .friends-section:nth-of-type(4) { animation-delay: 0.4s; }
     opacity: 0.4;
     cursor: not-allowed !important;
 }
+
+/* --- DASHBOARD XP & LEVEL SYSTEM --- */
+.level-progression-container {
+    margin-top: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem 2rem;
+    backdrop-filter: blur(10px);
+    width: 100%;
+}
+
+.level-badge-container {
+    flex-shrink: 0;
+    text-align: center;
+    background: linear-gradient(135deg, #FF6B00, #BD00FF);
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: 0 0 20px rgba(189, 0, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.level-label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    opacity: 0.8;
+}
+
+.level-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    line-height: 1;
+    margin-top: 0.25rem;
+    filter: drop-shadow(0 0 5px rgba(255,255,255,0.5));
+}
+
+.xp-progress-wrapper {
+    flex-grow: 1;
+}
+
+.xp-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.xp-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+}
+
+.xp-stats {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.xp-bar-container {
+    height: 12px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 999px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    position: relative;
+}
+
+.xp-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #FF6B00, #FF0000);
+    border-radius: 999px;
+    width: 0%;
+    transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    box-shadow: 0 0 15px rgba(255, 107, 0, 0.4);
+}
+
+.xp-bar-shimmer {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    background-size: 200% 100%;
+    animation: progress-shimmer 2s linear infinite;
+}
+
+/* Float Up XP Text */
+.xp-float-text {
+    position: fixed;
+    color: var(--accent);
+    font-weight: 900;
+    font-family: 'Orbitron', sans-serif;
+    pointer-events: none;
+    z-index: 9999;
+    animation: float-up-fade 1.5s ease-out forwards;
+}
+
+@keyframes float-up-fade {
+    0% { transform: translateY(0); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translateY(-100px); opacity: 0; }
+}
+
+.level-up-burst {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle, rgba(189, 0, 255, 0.2), transparent);
+    z-index: 9998;
+    pointer-events: none;
+    animation: flash-burst 0.8s ease-out forwards;
+}
+
+@keyframes flash-burst {
+    0% { opacity: 0; scale: 0.5; }
+    50% { opacity: 1; scale: 1.2; }
+    100% { opacity: 0; scale: 1; }
+}
