@@ -8,8 +8,8 @@
 
     async function refreshCoinBalance() {
         try {
-            const balance = await api.getCoinBalance();
-            storeCoinsSpan.textContent = balance.toLocaleString();
+            const data = await api.getCoinBalance();
+            storeCoinsSpan.textContent = (data.balance || 0).toLocaleString();
         } catch (e) {
             console.error('Failed to fetch balance', e);
         }
