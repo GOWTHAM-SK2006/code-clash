@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Store — CodeClash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="store-page">
+    <nav class="navbar" id="navbar"></nav>
+
+    <main class="page-content gaming-theme">
+        <!-- Digital Grid Overlay -->
+        <div class="bg-grid-overlay"></div>
+        
+        <!-- Decorative Energy Blooms -->
+        <div class="energy-bloom bloom-orange"></div>
+        <div class="energy-bloom bloom-purple"></div>
+        
+        <div class="container">
+            <div class="page-header store-header">
+                <div>
+                    <h1>Character Store</h1>
+                    <p>Unlock powerful skills and specialized abilities</p>
+                </div>
+                <div class="user-coins-display">
+                    <span class="coin-icon">🪙</span>
+                    <span id="storeCoins">0</span>
+                </div>
+            </div>
+
+            <div class="store-grid" id="storeGrid">
+                <!-- Loading State -->
+                <div class="loading-placeholder">Initializing Store Modules...</div>
+            </div>
+        </div>
+        
+        <!-- Toast System -->
+        <div id="toastContainer" class="toast-container"></div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/notification-manager.js"></script>
+    <script src="js/store.js"></script>
+</body>
+
+</html>

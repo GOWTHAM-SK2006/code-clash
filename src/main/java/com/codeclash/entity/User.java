@@ -9,7 +9,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -70,6 +72,12 @@ public class User implements UserDetails {
 
     @Column
     private LocalDateTime lastActiveAt;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_characters", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "character_id")
+    @Builder.Default
+    private Set<String> ownedCharacters = new HashSet<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

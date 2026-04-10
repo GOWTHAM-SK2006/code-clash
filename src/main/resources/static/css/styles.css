@@ -3314,3 +3314,149 @@ main > .container > .friends-section:nth-of-type(4) { animation-delay: 0.4s; }
     50% { opacity: 1; scale: 1.2; }
     100% { opacity: 0; scale: 1; }
 }
+
+/* --- STORE UI V1 --- */
+.store-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+}
+
+.user-coins-display {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.75rem 1.5rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--accent);
+    box-shadow: 0 0 20px rgba(255, 107, 0, 0.1);
+}
+
+.store-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.store-item-card {
+    position: relative;
+    background: rgba(30, 30, 45, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem 2rem;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.store-item-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent);
+    background: rgba(255, 107, 0, 0.05);
+}
+
+.store-item-card.owned {
+    opacity: 0.8;
+    background: rgba(46, 213, 115, 0.03);
+    border-color: rgba(46, 213, 115, 0.2);
+}
+
+.store-item-glow {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(255, 107, 0, 0.15), transparent 70%);
+    pointer-events: none;
+}
+
+.item-icon-wrap {
+    width: 100px;
+    height: 100px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2rem;
+    position: relative;
+    border: 2px solid rgba(255, 255, 255, 0.05);
+}
+
+.item-icon {
+    font-size: 3rem;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+}
+
+.item-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+    color: #fff;
+}
+
+.item-desc {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+}
+
+.item-footer {
+    margin-top: auto;
+    width: 100%;
+}
+
+.item-price {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+}
+
+.btn-owned {
+    background: rgba(46, 213, 115, 0.1);
+    color: #2ed573;
+    border: 1px solid rgba(46, 213, 115, 0.2);
+}
+
+/* Toast Module */
+.toast-container {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 10000;
+}
+
+.store-toast {
+    background: rgba(30, 30, 45, 0.95);
+    border-left: 4px solid var(--accent);
+    color: #fff;
+    padding: 1rem 2rem;
+    border-radius: var(--radius);
+    margin-top: 1rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    backdrop-filter: blur(10px);
+    transition: all 0.5s ease;
+    animation: slide-in-toast 0.3s ease-out;
+}
+
+.store-toast.success { border-color: #2ed573; }
+.store-toast.error { border-color: #ff4757; }
+
+@keyframes slide-in-toast {
+    0% { transform: translateX(100%); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+}

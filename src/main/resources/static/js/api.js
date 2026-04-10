@@ -184,6 +184,12 @@ const api = {
     getCoinBalance() { return this.request('/coins/balance'); },
     getCoinHistory() { return this.request('/coins/history'); },
 
+    // Store
+    getStoreItems() { return this.request('/store/items'); },
+    buyCharacter(itemId) {
+        return this.request(`/store/buy/${itemId}`, { method: 'POST' });
+    },
+
     // Leaderboard
     getLeaderboard() { return this.request('/leaderboard'); },
 
