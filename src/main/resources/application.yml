@@ -6,15 +6,17 @@ spring:
     name: codeclash
 
   datasource:
-    url: jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5432}/${PGDATABASE:codeclash}
-    username: ${PGUSER:postgres}
-    password: ${PGPASSWORD:postgres}
+    url: ${SPRING_DATASOURCE_URL:${DATABASE_URL:${JDBC_DATABASE_URL:}}}
+    username: ${SPRING_DATASOURCE_USERNAME:${PGUSER:${DATABASE_USERNAME:}}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${PGPASSWORD:${DATABASE_PASSWORD:}}}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: false
+    defer-datasource-initialization: true
+    open-in-view: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
