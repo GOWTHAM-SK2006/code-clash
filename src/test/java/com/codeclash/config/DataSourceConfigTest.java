@@ -31,7 +31,7 @@ class DataSourceConfigTest {
         DataSourceConfig.DatabaseConnectionDetails details = DataSourceConfig.resolveConnectionDetails(env);
 
         assertNotNull(details);
-        assertEquals("jdbc:postgresql://aws-0-ap-northeast-2.pooler.supabase.com:6543/postgres?sslmode=require", details.jdbcUrl());
+        assertEquals("jdbc:postgresql://aws-0-ap-northeast-2.pooler.supabase.com:6543/postgres?sslmode=require&prepareThreshold=0", details.jdbcUrl());
         assertEquals("postgres.oytuknmfaofjlocdzgdi", details.username());
         assertEquals("ComplexPass", details.password());
     }

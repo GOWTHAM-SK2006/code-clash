@@ -55,6 +55,10 @@ public class DataSourceConfig {
         config.setMaxLifetime(1800000);
         config.setValidationTimeout(5000);
 
+        if (details.jdbcUrl().contains(":6543") || details.jdbcUrl().contains("prepareThreshold=0")) {
+            config.addDataSourceProperty("prepareThreshold", "0");
+        }
+
         log.info("PostgreSQL DataSource configured with target: {}", sanitizeJdbcUrl(details.jdbcUrl()));
         log.info("PostgreSQL User: {}", details.username() != null ? details.username() : "(none)");
 
@@ -94,6 +98,9 @@ public class DataSourceConfig {
             String sslMode = getFirstNonBlankOrDefault(env, defaultSsl, "PGSSLMODE", "DB_SSLMODE");
 
             String jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s?sslmode=%s", host, port, database, sslMode);
+            if ("6543".equals(port) && !jdbcUrl.contains("prepareThreshold=")) {
+                jdbcUrl += "&prepareThreshold=0";
+            }
             return new DatabaseConnectionDetails(jdbcUrl, username, password);
         }
 
@@ -226,6 +233,11 @@ public class DataSourceConfig {
                 jdbcBuilder.append("?sslmode=require");
             }
 
+            // Supabase Transaction Pooler (port 6543) requires prepareThreshold=0 to avoid PgBouncer prepared statement conflicts
+            if (port == 6543 && !jdbcBuilder.toString().contains("prepareThreshold=")) {
+                jdbcBuilder.append(jdbcBuilder.indexOf("?") != -1 ? "&" : "?").append("prepareThreshold=0");
+            }
+
             return new DatabaseConnectionDetails(jdbcBuilder.toString(), username, password);
         } catch (Exception e) {
             log.error("Failed to parse PostgreSQL URI: {}", e.getMessage(), e);
@@ -241,6 +253,9 @@ public class DataSourceConfig {
         boolean isLocalhost = jdbcUrl.contains("//localhost") || jdbcUrl.contains("//127.0.0.1");
         if (!isLocalhost && !jdbcUrl.contains("sslmode=")) {
             updatedUrl += (jdbcUrl.contains("?") ? "&" : "?") + "sslmode=require";
+        }
+        if (updatedUrl.contains(":6543") && !updatedUrl.contains("prepareThreshold=")) {
+            updatedUrl += (updatedUrl.contains("?") ? "&" : "?") + "prepareThreshold=0";
         }
 
         return new DatabaseConnectionDetails(updatedUrl, username, password);
