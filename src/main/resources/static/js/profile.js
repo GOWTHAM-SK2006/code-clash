@@ -129,8 +129,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 sectionBadge.textContent = `Section ${user.section}`;
                 sectionBadge.classList.remove('hidden');
             }
+        } catch (error) {
+            console.error('Error loading profile:', error);
+        }
 
-            // Fetch coin history
+        // Fetch coin history
+        try {
             allTransactions = await api.getCoinHistory();
 
             if (historyContainer) {
@@ -149,18 +153,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 }
             }
-
-
-            } catch (error) {
-                console.error('Error loading profile:', error);
-                if (historyContainer) {
-                    historyContainer.innerHTML = `
-                        <div class="p-8 text-center text-red-500 bg-red-500/10 border border-red-500/20 rounded-3xl">
-                            <p class="font-bold">Failed to load profile data</p>
-                        </div>
-                    `;
-                }
+        } catch (error) {
+            console.error('Error loading coin history:', error);
+            if (historyContainer) {
+                historyContainer.innerHTML = `
+                    <div class="p-8 text-center text-red-500 bg-red-500/10 border border-red-500/20 rounded-3xl">
+                        <p class="font-bold">Failed to load recent history</p>
+                    </div>
+                `;
             }
+        }
 
     }
 
