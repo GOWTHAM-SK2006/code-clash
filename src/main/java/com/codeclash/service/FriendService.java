@@ -11,11 +11,14 @@ import com.codeclash.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class FriendService {
 
     private static final int MAX_FRIENDS = 3;
@@ -27,6 +30,7 @@ public class FriendService {
         User currentUser = getUserByUsername(username);
         List<User> allUsers = userRepository.findAll().stream()
                 .filter(user -> !Objects.equals(user.getId(), currentUser.getId()))
+                .filter(user -> !"ADMIN".equalsIgnoreCase(user.getRole()))
                 .sorted(Comparator.comparing(this::displayNameLower, Comparator.nullsLast(String::compareToIgnoreCase)))
                 .toList();
 
@@ -69,6 +73,7 @@ public class FriendService {
                 .build();
     }
 
+    @Transactional
     public FriendRequestDto sendRequest(String username, Long targetUserId) {
         User sender = getUserByUsername(username);
         User receiver = userRepository.findById(targetUserId)
@@ -107,9 +112,10 @@ public class FriendService {
         return toRequestDto(friendRequestRepository.save(request));
     }
 
+    @Transactional
     public FriendRequestDto acceptRequest(String username, Long requestId) {
         User currentUser = getUserByUsername(username);
-        FriendRequest request = friendRequestRepository.findById(requestId)
+        FriendRequest request = friendRequestRepository.findByIdWithUsers(requestId)
                 .orElseThrow(() -> new RuntimeException("Friend request not found"));
 
         User requester = request.getRequester();
@@ -132,6 +138,53 @@ public class FriendService {
 
         request.setStatus(FriendRequestStatus.ACCEPTED);
         return toRequestDto(friendRequestRepository.save(request));
+    }
+
+    @Transactional
+    public void rejectRequest(String username, Long requestId) {
+        User currentUser = getUserByUsername(username);
+        FriendRequest request = friendRequestRepository.findByIdWithUsers(requestId)
+                .orElseThrow(() -> new RuntimeException("Friend request not found"));
+
+        if (!Objects.equals(request.getReceiver().getId(), currentUser.getId())) {
+            throw new RuntimeException("You are not allowed to reject this request");
+        }
+
+        if (request.getStatus() != FriendRequestStatus.PENDING) {
+            throw new RuntimeException("Friend request is already processed");
+        }
+
+        friendRequestRepository.delete(request);
+    }
+
+    @Transactional
+    public void cancelRequest(String username, Long requestId) {
+        User currentUser = getUserByUsername(username);
+        FriendRequest request = friendRequestRepository.findByIdWithUsers(requestId)
+                .orElseThrow(() -> new RuntimeException("Friend request not found"));
+
+        if (!Objects.equals(request.getRequester().getId(), currentUser.getId())) {
+            throw new RuntimeException("You are not allowed to cancel this request");
+        }
+
+        if (request.getStatus() != FriendRequestStatus.PENDING) {
+            throw new RuntimeException("Friend request is already processed");
+        }
+
+        friendRequestRepository.delete(request);
+    }
+
+    @Transactional
+    public void removeFriend(String username, Long targetUserId) {
+        User currentUser = getUserByUsername(username);
+        FriendRequest relationship = friendRequestRepository.findRelationshipBetweenUsers(currentUser.getId(), targetUserId)
+                .orElseThrow(() -> new RuntimeException("Friend relationship not found"));
+
+        if (relationship.getStatus() != FriendRequestStatus.ACCEPTED) {
+            throw new RuntimeException("You are not friends with this user");
+        }
+
+        friendRequestRepository.delete(relationship);
     }
 
     public List<FriendRequestDto> getNotifications(String username) {

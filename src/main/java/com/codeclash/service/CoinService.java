@@ -19,7 +19,8 @@ public class CoinService {
 
     @Transactional
     public void awardCoins(User user, int amount, String reason) {
-        user.setCoins(user.getCoins() + amount);
+        int current = user.getCoins() != null ? user.getCoins() : 0;
+        user.setCoins(current + amount);
         userRepository.save(user);
 
         CoinTransaction tx = CoinTransaction.builder()
@@ -36,11 +37,12 @@ public class CoinService {
             throw new RuntimeException("Invalid coin amount");
         }
 
-        if (user.getCoins() < amount) {
+        int current = user.getCoins() != null ? user.getCoins() : 0;
+        if (current < amount) {
             throw new RuntimeException("Insufficient coins");
         }
 
-        user.setCoins(user.getCoins() - amount);
+        user.setCoins(current - amount);
         userRepository.save(user);
 
         CoinTransaction tx = CoinTransaction.builder()
@@ -52,18 +54,20 @@ public class CoinService {
     }
 
     public boolean hasEnoughCoins(User user, int amount) {
-        return user.getCoins() != null && user.getCoins() >= amount;
+        return user != null && user.getCoins() != null && user.getCoins() >= amount;
     }
 
+    @Transactional(readOnly = true)
     public List<CoinTransaction> getHistory(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return coinTransactionRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
     }
 
+    @Transactional(readOnly = true)
     public int getBalance(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return user.getCoins();
+        return user.getCoins() != null ? user.getCoins() : 0;
     }
 }

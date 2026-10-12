@@ -32,6 +32,27 @@ public class FriendController {
         return ResponseEntity.ok(friendService.acceptRequest(current.getUsername(), requestId));
     }
 
+    @PostMapping("/requests/{requestId}/reject")
+    public ResponseEntity<?> rejectFriendRequest(Authentication auth, @PathVariable Long requestId) {
+        User current = (User) auth.getPrincipal();
+        friendService.rejectRequest(current.getUsername(), requestId);
+        return ResponseEntity.ok(java.util.Map.of("message", "Friend request rejected"));
+    }
+
+    @PostMapping("/requests/{requestId}/cancel")
+    public ResponseEntity<?> cancelFriendRequest(Authentication auth, @PathVariable Long requestId) {
+        User current = (User) auth.getPrincipal();
+        friendService.cancelRequest(current.getUsername(), requestId);
+        return ResponseEntity.ok(java.util.Map.of("message", "Friend request cancelled"));
+    }
+
+    @DeleteMapping("/{targetUserId}")
+    public ResponseEntity<?> removeFriend(Authentication auth, @PathVariable Long targetUserId) {
+        User current = (User) auth.getPrincipal();
+        friendService.removeFriend(current.getUsername(), targetUserId);
+        return ResponseEntity.ok(java.util.Map.of("message", "Friend removed successfully"));
+    }
+
     @GetMapping("/notifications")
     public ResponseEntity<?> getNotifications(Authentication auth) {
         User current = (User) auth.getPrincipal();

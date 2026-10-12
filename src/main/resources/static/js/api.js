@@ -108,6 +108,21 @@ const api = {
             method: 'POST'
         });
     },
+    rejectFriendRequest(requestId) {
+        return this.request(`/friends/requests/${requestId}/reject`, {
+            method: 'POST'
+        });
+    },
+    cancelFriendRequest(requestId) {
+        return this.request(`/friends/requests/${requestId}/cancel`, {
+            method: 'POST'
+        });
+    },
+    removeFriend(targetUserId) {
+        return this.request(`/friends/${targetUserId}`, {
+            method: 'DELETE'
+        });
+    },
     getFriendNotifications() { return this.request('/friends/notifications'); },
 
     // Problems

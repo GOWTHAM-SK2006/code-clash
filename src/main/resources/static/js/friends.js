@@ -96,6 +96,9 @@
                         <div class="gamer-handle">@${escHtml(friend.username)}</div>
                         <div class="gamer-tag">⚔️ Squad Member</div>
                     </div>
+                    <div style="margin-left: auto; display: flex; align-items: center;">
+                        <button class="btn-gamer btn-gamer-remove remove-friend-btn" data-user-id="${friend.userId}" title="Remove squad member">✕ Remove</button>
+                    </div>
                 </div>
             </div>
         `).join('');
@@ -126,8 +129,9 @@
                     <div class="req-name">${escHtml(req.fromDisplayName || req.fromUsername)}</div>
                     <div class="req-meta">@${escHtml(req.fromUsername)} · ${formatDate(req.createdAt)}</div>
                 </div>
-                <div class="req-actions">
+                <div class="req-actions" style="display:flex;gap:0.5rem;align-items:center;">
                     ${acceptBtnHtml.replace('__RID__', req.requestId)}
+                    <button class="btn-gamer btn-gamer-reject reject-request-btn" data-request-id="${req.requestId}">✕ Decline</button>
                 </div>
             </div>
         `).join('');
@@ -154,8 +158,9 @@
                     <div class="req-name">${escHtml(req.toDisplayName || req.toUsername)}</div>
                     <div class="req-meta">@${escHtml(req.toUsername)} · Sent ${formatDate(req.createdAt)}</div>
                 </div>
-                <div class="req-actions">
+                <div class="req-actions" style="display:flex;gap:0.5rem;align-items:center;">
                     <span class="btn-gamer btn-gamer-pending">⏳ Pending</span>
+                    <button class="btn-gamer btn-gamer-cancel cancel-request-btn" data-request-id="${req.requestId}">✕ Cancel</button>
                 </div>
             </div>
         `).join('');
@@ -167,9 +172,12 @@
             case 'FRIEND':
                 return '<button class="btn-gamer btn-gamer-friends" disabled>✓ Friends</button>';
             case 'SENT':
-                return '<button class="btn-gamer btn-gamer-pending" disabled>⏳ Requested</button>';
+                return user.requestId 
+                    ? `<button class="btn-gamer btn-gamer-cancel cancel-request-btn" data-request-id="${user.requestId}">✕ Cancel</button>`
+                    : '<button class="btn-gamer btn-gamer-pending" disabled>⏳ Requested</button>';
             case 'RECEIVED':
-                return `<button class="btn-gamer btn-gamer-accept accept-request-btn" data-request-id="${user.requestId}">✓ Accept</button>`;
+                return `<button class="btn-gamer btn-gamer-accept accept-request-btn" data-request-id="${user.requestId}">✓ Accept</button>
+                        <button class="btn-gamer btn-gamer-reject reject-request-btn" data-request-id="${user.requestId}">✕ Decline</button>`;
             default:
                 if (currentFriendCount >= MAX_FRIENDS) {
                     return '<button class="btn-gamer btn-gamer-pending" disabled>Limit Reached</button>';
@@ -270,11 +278,13 @@
             allUsersCache = overview.allUsers || [];
             updateAllUsersView();
         } catch (error) {
+            console.error('Error loading friends overview:', error);
+            const errDetail = error.message ? escHtml(error.message) : 'Please try refreshing the page';
             const errMsg = `
                 <div class="empty-gaming">
                     <div class="empty-icon">⚠️</div>
-                    <div class="empty-text">Could not load data</div>
-                    <div class="empty-hint">Please try refreshing the page</div>
+                    <div class="empty-text">Could not load squad data</div>
+                    <div class="empty-hint">${errDetail}</div>
                 </div>`;
             friendsListEl.innerHTML = errMsg;
             receivedRequestsEl.innerHTML = errMsg;
@@ -316,6 +326,52 @@
         }
     }
 
+    async function rejectFriendRequest(requestId, buttonEl) {
+        buttonEl.disabled = true;
+        buttonEl.textContent = 'Declining...';
+        try {
+            await api.rejectFriendRequest(requestId);
+            showMessage('Friend request declined', 'info');
+            await loadOverview();
+            window.dispatchEvent(new CustomEvent('cc:friendsUpdated'));
+        } catch (error) {
+            showMessage(error.message || 'Failed to decline request', 'error');
+            buttonEl.disabled = false;
+            buttonEl.textContent = '✕ Decline';
+        }
+    }
+
+    async function cancelFriendRequest(requestId, buttonEl) {
+        buttonEl.disabled = true;
+        buttonEl.textContent = 'Cancelling...';
+        try {
+            await api.cancelFriendRequest(requestId);
+            showMessage('Friend request cancelled', 'info');
+            await loadOverview();
+            window.dispatchEvent(new CustomEvent('cc:friendsUpdated'));
+        } catch (error) {
+            showMessage(error.message || 'Failed to cancel request', 'error');
+            buttonEl.disabled = false;
+            buttonEl.textContent = '✕ Cancel';
+        }
+    }
+
+    async function removeFriend(targetUserId, buttonEl) {
+        if (!confirm('Are you sure you want to remove this squad member?')) return;
+        buttonEl.disabled = true;
+        buttonEl.textContent = 'Removing...';
+        try {
+            await api.removeFriend(targetUserId);
+            showMessage('Squad member removed', 'info');
+            await loadOverview();
+            window.dispatchEvent(new CustomEvent('cc:friendsUpdated'));
+        } catch (error) {
+            showMessage(error.message || 'Failed to remove friend', 'error');
+            buttonEl.disabled = false;
+            buttonEl.textContent = '✕ Remove';
+        }
+    }
+
     document.addEventListener('click', async (event) => {
         const openPanelBtn = event.target.closest('#openAddFriendBtn');
         if (openPanelBtn) {
@@ -348,6 +404,34 @@
             if (requestId) {
                 await acceptFriendRequest(requestId, acceptButton);
             }
+            return;
+        }
+
+        const rejectButton = event.target.closest('.reject-request-btn');
+        if (rejectButton) {
+            const requestId = rejectButton.dataset.requestId;
+            if (requestId) {
+                await rejectFriendRequest(requestId, rejectButton);
+            }
+            return;
+        }
+
+        const cancelButton = event.target.closest('.cancel-request-btn');
+        if (cancelButton) {
+            const requestId = cancelButton.dataset.requestId;
+            if (requestId) {
+                await cancelFriendRequest(requestId, cancelButton);
+            }
+            return;
+        }
+
+        const removeButton = event.target.closest('.remove-friend-btn');
+        if (removeButton) {
+            const targetUserId = removeButton.dataset.userId;
+            if (targetUserId) {
+                await removeFriend(targetUserId, removeButton);
+            }
+            return;
         }
     });
 
