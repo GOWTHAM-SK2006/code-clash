@@ -41,8 +41,52 @@
                     <div class="stat-value" id="totalUsers">—</div>
                     <div class="stat-label">👥 Total Users</div>
                 </div>
+
+                <div class="stat-card stat-card-level">
+                    <div class="stat-value" id="playerLevel">—</div>
+                    <div class="stat-label">⭐ Player Level</div>
+                </div>
+                <div class="stat-card stat-card-xp">
+                    <div class="stat-value" id="totalXp">—</div>
+                    <div class="stat-label">⚡ Total XP</div>
+                </div>
+                <div class="stat-card stat-card-battles">
+                    <div class="stat-value" id="totalBattles">—</div>
+                    <div class="stat-label">⚔️ Battles Played</div>
+                </div>
+                <div class="stat-card stat-card-record">
+                    <div class="stat-value" id="winLossRecord"><span id="winsVal">0</span>W / <span id="lossesVal">0</span>L</div>
+                    <div class="stat-label">🎖️ W / L Record</div>
+                </div>
+                <div class="stat-card stat-card-winrate">
+                    <div class="stat-value" id="winRateVal">—%</div>
+                    <div class="stat-label">🎯 Win Rate</div>
+                </div>
             </div>
 
+            <!-- Player Progression Section -->
+            <div class="progression-section card card-glow" id="progressionSection">
+                <div class="progression-header">
+                    <div class="progression-title-wrap">
+                        <div class="level-badge" id="levelBadge">LVL <span id="levelBadgeNum">1</span></div>
+                        <div>
+                            <h3 class="progression-title">Player Progression</h3>
+                            <p class="progression-subtitle" id="progressionSubtitle">Earn XP by solving challenges and winning arena battles</p>
+                        </div>
+                    </div>
+                    <div class="xp-counter-wrap">
+                        <span class="xp-current" id="currentLevelXp">0 XP</span>
+                        <span class="xp-divider">/</span>
+                        <span class="xp-target" id="nextLevelXp">250 XP</span>
+                        <span class="xp-needed-tag" id="xpNeededTag">(250 XP to Next Level)</span>
+                    </div>
+                </div>
+                <div class="progression-bar-container">
+                    <div class="progression-bar-fill" id="progressionBarFill" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <!-- Dashboard Actions (Daily Check-in, Weekly Events, Start a Battle) -->
             <div class="dashboard-actions">
                 <div class="card card-glow action-card checkin-card" id="checkInCard">
                     <!-- Lightning Animation Layers -->
@@ -57,12 +101,13 @@
                     </div>
                 </div>
 
-                <a href="events.html" class="card card-glow action-card"
+                <a href="events.html" class="card card-glow action-card" id="weeklyEventsCard"
                     style="border-color:var(--accent); background:rgba(255,107,0,0.05);">
                     <span class="action-icon">🔥</span>
-                    <h3 style="color:var(--accent)">Weekly Events</h3>
-                    <p>Join live bidding to secure your spot
+                    <h3 style="color:var(--accent)" id="weeklyEventsTitle">Weekly Events</h3>
+                    <p id="weeklyEventsDesc">Join live bidding to secure your spot
                         in the weekly coding championship.</p>
+                    <div id="weeklyEventsExtra" class="event-dynamic-extra hidden"></div>
                 </a>
                 <a href="battle-mode.html" class="card card-glow action-card action-card-battle">
                     <span class="action-icon">⚔️</span>
@@ -70,6 +115,189 @@
                     <p>Challenge another coder to a real-time
                         1v1 coding duel.</p>
                 </a>
+            </div>
+
+            <!-- Quick Battle Arena Section -->
+            <div class="section-container" id="quickBattleSection">
+                <div class="section-header">
+                    <span class="section-badge">RAPID DEPLOYMENT</span>
+                    <h2>⚔️ Quick Battle Arena</h2>
+                    <p class="section-desc">Select your combat protocol and deploy into the battle arena</p>
+                </div>
+
+                <div class="quick-battle-grid">
+                    <!-- 1v1 Battle -->
+                    <a href="battle.html" class="quick-battle-card group">
+                        <div class="qb-icon-box">⚔️</div>
+                        <div class="qb-content">
+                            <div class="qb-badge-row">
+                                <span class="qb-badge qb-badge-orange">Ranked Duel</span>
+                                <span class="qb-fee">15 - 30 🪙</span>
+                            </div>
+                            <h3>1 vs 1 Battle</h3>
+                            <p>Head-to-head coding clash with instant matchmaking. Victor claims 2x entry fee.</p>
+                            <div class="qb-footer">
+                                <span class="qb-cta">Launch 1v1 Duel →</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- 2v2 Team Battle -->
+                    <a href="battle.html?mode=2v2" class="quick-battle-card group">
+                        <div class="qb-icon-box">👥</div>
+                        <div class="qb-content">
+                            <div class="qb-badge-row">
+                                <span class="qb-badge qb-badge-purple">Team Duo</span>
+                                <span class="qb-fee">Co-op Arena</span>
+                            </div>
+                            <h3>2 vs 2 Team Battle</h3>
+                            <p>Form a squad with a friend, sync your algorithms, and outcode the rival duo.</p>
+                            <div class="qb-footer">
+                                <span class="qb-cta">Assemble Duo →</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Custom Battle -->
+                    <a href="battle-mode.html" class="quick-battle-card group">
+                        <div class="qb-icon-box">🎯</div>
+                        <div class="qb-content">
+                            <div class="qb-badge-row">
+                                <span class="qb-badge qb-badge-blue">Private Match</span>
+                                <span class="qb-fee">Custom Lobby</span>
+                            </div>
+                            <h3>Custom Battle</h3>
+                            <p>Host private duel rooms, challenge squad mates, or select custom battle rules.</p>
+                            <div class="qb-footer">
+                                <span class="qb-cta">Open Custom Lobby →</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Error Battle -->
+                    <a href="battle.html?mode=error" class="quick-battle-card group">
+                        <div class="qb-icon-box">🐛</div>
+                        <div class="qb-content">
+                            <div class="qb-badge-row">
+                                <span class="qb-badge qb-badge-emerald">Bug Hunt</span>
+                                <span class="qb-fee">Rapid Debug</span>
+                            </div>
+                            <h3>Error Battle</h3>
+                            <p>Detect, diagnose, and fix intentional bugs in broken code against the clock.</p>
+                            <div class="qb-footer">
+                                <span class="qb-cta">Start Debug Race →</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Battles Section -->
+            <div class="section-container" id="recentBattlesSection">
+                <div class="section-header flex-between">
+                    <div>
+                        <span class="section-badge">COMBAT TELEMETRY</span>
+                        <h2>⚔️ Recent Battles</h2>
+                        <p class="section-desc">Your latest 5 arena combat logs</p>
+                    </div>
+                    <a href="leaderboard.html" class="btn btn-secondary btn-sm" id="viewAllBattlesBtn">View Leaderboard & Records →</a>
+                </div>
+
+                <div class="recent-battles-list" id="recentBattlesList">
+                    <div class="empty-battles-state card">
+                        <div class="empty-icon">🛡️</div>
+                        <h4>No Battles Fought Yet</h4>
+                        <p>Deploy into the 1v1 or 2v2 Arena to forge your combat record and earn XP!</p>
+                        <a href="battle.html" class="btn btn-primary btn-sm mt-3">Start First Battle</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Missions & Milestones Section -->
+            <div class="section-container" id="dailyMissionsSection">
+                <div class="section-header">
+                    <span class="section-badge">DAILY OPS</span>
+                    <h2>🎯 Daily Missions & Milestones</h2>
+                    <p class="section-desc">Complete daily tasks to maximize coin balance and XP progression</p>
+                </div>
+
+                <div class="missions-grid" id="missionsGrid">
+                    <!-- Mission 1: Check-in -->
+                    <div class="mission-card card card-glow" id="missionCheckIn">
+                        <div class="mission-icon">🪙</div>
+                        <div class="mission-details">
+                            <div class="mission-top">
+                                <h4>Daily Check-in</h4>
+                                <span class="mission-reward">+30 Coins</span>
+                            </div>
+                            <p class="mission-desc">Claim your routine 12-hour reward chest.</p>
+                            <div class="mission-progress-bar">
+                                <div class="mission-fill" id="mFillCheckIn" style="width: 0%;"></div>
+                            </div>
+                            <div class="mission-status-row">
+                                <span class="mission-progress-text" id="mTextCheckIn">0/1</span>
+                                <span class="mission-badge" id="mBadgeCheckIn">Pending</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mission 2: Battle -->
+                    <div class="mission-card card card-glow" id="missionBattle">
+                        <div class="mission-icon">⚔️</div>
+                        <div class="mission-details">
+                            <div class="mission-top">
+                                <h4>Arena Contender</h4>
+                                <span class="mission-reward">+50 XP</span>
+                            </div>
+                            <p class="mission-desc">Participate in at least 1 coding battle.</p>
+                            <div class="mission-progress-bar">
+                                <div class="mission-fill" id="mFillBattle" style="width: 0%;"></div>
+                            </div>
+                            <div class="mission-status-row">
+                                <span class="mission-progress-text" id="mTextBattle">0/1</span>
+                                <span class="mission-badge" id="mBadgeBattle">Pending</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mission 3: Problem -->
+                    <div class="mission-card card card-glow" id="missionProblem">
+                        <div class="mission-icon">💻</div>
+                        <div class="mission-details">
+                            <div class="mission-top">
+                                <h4>Algorithm Solver</h4>
+                                <span class="mission-reward">+100 XP</span>
+                            </div>
+                            <p class="mission-desc">Solve code problems in the practice catalog.</p>
+                            <div class="mission-progress-bar">
+                                <div class="mission-fill" id="mFillProblem" style="width: 0%;"></div>
+                            </div>
+                            <div class="mission-status-row">
+                                <span class="mission-progress-text" id="mTextProblem">0/1</span>
+                                <span class="mission-badge" id="mBadgeProblem">Pending</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mission 4: Squad -->
+                    <div class="mission-card card card-glow" id="missionSquad">
+                        <div class="mission-icon">👥</div>
+                        <div class="mission-details">
+                            <div class="mission-top">
+                                <h4>Squad Network</h4>
+                                <span class="mission-reward">+20 XP</span>
+                            </div>
+                            <p class="mission-desc">Add a fellow programmer to your squad list.</p>
+                            <div class="mission-progress-bar">
+                                <div class="mission-fill" id="mFillSquad" style="width: 0%;"></div>
+                            </div>
+                            <div class="mission-status-row">
+                                <span class="mission-progress-text" id="mTextSquad">0/1</span>
+                                <span class="mission-badge" id="mBadgeSquad">Pending</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
 

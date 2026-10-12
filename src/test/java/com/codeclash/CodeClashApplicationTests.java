@@ -203,4 +203,85 @@ class CodeClashApplicationTests {
         String json = mapper.writeValueAsString(history);
         org.junit.jupiter.api.Assertions.assertFalse(json.contains("\"user\":"));
     }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.codeclash.service.UserService userService;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.codeclash.repository.BattleRepository battleRepository;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.codeclash.repository.BattleParticipantRepository battleParticipantRepository;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.codeclash.repository.ProblemRepository problemRepository;
+
+    @Test
+    void testDashboardEnhancedStatsAndProgression() {
+        com.codeclash.entity.User player = userRepository.save(com.codeclash.entity.User.builder()
+                .username("dash_gamer")
+                .displayName("Gamer One")
+                .email("gamer@test.com")
+                .password("pass123")
+                .coins(45)
+                .problemsSolved(2)
+                .build());
+
+        com.codeclash.entity.User rival = userRepository.save(com.codeclash.entity.User.builder()
+                .username("dash_rival")
+                .displayName("Rival X")
+                .email("rival@test.com")
+                .password("pass123")
+                .coins(20)
+                .problemsSolved(0)
+                .build());
+
+        com.codeclash.entity.Problem problem = problemRepository.findAll().stream().findFirst().orElseGet(() ->
+                problemRepository.save(com.codeclash.entity.Problem.builder()
+                        .title("Test Duel Problem")
+                        .description("Test Problem Desc")
+                        .difficulty("Easy")
+                        .points(15)
+                        .build()));
+
+        com.codeclash.entity.Battle battle = battleRepository.save(com.codeclash.entity.Battle.builder()
+                .problem(problem)
+                .status("COMPLETED")
+                .mode("1v1")
+                .winnerId(player.getId())
+                .startedAt(java.time.LocalDateTime.now())
+                .endedAt(java.time.LocalDateTime.now().plusMinutes(5))
+                .build());
+
+        battleParticipantRepository.save(com.codeclash.entity.BattleParticipant.builder()
+                .battle(battle)
+                .user(player)
+                .isCorrect(true)
+                .build());
+
+        battleParticipantRepository.save(com.codeclash.entity.BattleParticipant.builder()
+                .battle(battle)
+                .user(rival)
+                .isCorrect(false)
+                .build());
+
+        com.codeclash.dto.DashboardDto dash = userService.getDashboard("dash_gamer");
+
+        org.junit.jupiter.api.Assertions.assertNotNull(dash);
+        org.junit.jupiter.api.Assertions.assertEquals("dash_gamer", dash.getUsername());
+        org.junit.jupiter.api.Assertions.assertEquals(45, dash.getTotalCoins());
+        org.junit.jupiter.api.Assertions.assertEquals(2, dash.getProblemsSolved());
+        org.junit.jupiter.api.Assertions.assertEquals(1L, dash.getTotalBattles());
+        org.junit.jupiter.api.Assertions.assertEquals(1L, dash.getWins());
+        org.junit.jupiter.api.Assertions.assertEquals(0L, dash.getLosses());
+        org.junit.jupiter.api.Assertions.assertEquals(100, dash.getWinRate());
+        // 2 problems solved = 200 XP + 1 win = 50 XP -> 250 XP
+        org.junit.jupiter.api.Assertions.assertEquals(250, dash.getTotalXp());
+        org.junit.jupiter.api.Assertions.assertEquals(2, dash.getLevel());
+        org.junit.jupiter.api.Assertions.assertEquals(0, dash.getCurrentLevelXp());
+        org.junit.jupiter.api.Assertions.assertEquals(0, dash.getXpProgressPercent());
+        org.junit.jupiter.api.Assertions.assertFalse(dash.getRecentBattles().isEmpty());
+        org.junit.jupiter.api.Assertions.assertEquals("WON", dash.getRecentBattles().get(0).getResult());
+        org.junit.jupiter.api.Assertions.assertEquals("Rival X", dash.getRecentBattles().get(0).getOpponentName());
+    }
 }
