@@ -4,308 +4,378 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard — CodeClash</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Lobby — CodeClash</title>
+    <meta name="description" content="CodeClash gaming lobby — your personal battle arena. View stats, battle, missions, events and more.">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/lobby.css">
 </head>
 
-<body class="dashboard-page">
-    <nav class="navbar" id="navbar"></nav>
+<body class="lobby-page">
 
-    <main class="page-content gaming-theme">
-        <!-- Digital Grid Overlay -->
-        <div class="bg-grid-overlay"></div>
-        
-        <!-- Decorative Energy Blooms -->
-        <div class="energy-bloom bloom-orange"></div>
-        <div class="energy-bloom bloom-blue"></div>
-        <div class="energy-bloom bloom-purple"></div>
-        
-        <div class="container">
-            <div class="page-header dashboard-header">
-                <h1>Dashboard</h1>
-                <p>Welcome back, <span id="userName" class="username-highlight"></span></p>
+    <!-- TOP STATUS BAR -->
+    <header class="lobby-header" id="lobbyHeader">
+        <div class="lh-left">
+            <a href="index.html" class="lh-logo">&#9889; Code<span>Clash</span></a>
+            <nav class="lh-nav">
+                <a href="dashboard.html"   class="lh-nav-link active" data-nav-page="dashboard">&#127968; Lobby</a>
+                <a href="battle-mode.html" class="lh-nav-link"        data-nav-page="battle">&#9876; Battle</a>
+                <a href="events.html"      class="lh-nav-link"        data-nav-page="events">&#128293; Events</a>
+                <a href="leaderboard.html" class="lh-nav-link"        data-nav-page="leaderboard">&#127942; Board</a>
+                <a href="friends.html"     class="lh-nav-link"        data-nav-page="friends">&#128101; Squad</a>
+            </nav>
+        </div>
+
+        <div class="lh-right">
+            <div class="lh-stat-chip" id="headerCoins" title="Coin balance">
+                <span class="lh-chip-icon">&#129689;</span>
+                <span class="lh-chip-value" id="headerCoinsVal">&#8212;</span>
+            </div>
+            <div class="lh-stat-chip" id="headerXp" title="Level">
+                <span class="lh-chip-icon">&#9889;</span>
+                <span class="lh-chip-value">LVL&nbsp;<span id="headerLevel">1</span></span>
             </div>
 
-            <div class="stats-grid" id="statsGrid">
-                <div class="stat-card stat-card-coins">
-                    <div class="stat-value" id="totalCoins">—</div>
-                    <div class="stat-label">🪙 Total Coins</div>
-                </div>
-
-                <div class="stat-card stat-card-rank">
-                    <div class="stat-value" id="userRank">—</div>
-                    <div class="stat-label">🏆 Your Rank</div>
-                </div>
-                <div class="stat-card stat-card-users">
-                    <div class="stat-value" id="totalUsers">—</div>
-                    <div class="stat-label">👥 Total Users</div>
-                </div>
-
-                <div class="stat-card stat-card-level">
-                    <div class="stat-value" id="playerLevel">—</div>
-                    <div class="stat-label">⭐ Player Level</div>
-                </div>
-                <div class="stat-card stat-card-xp">
-                    <div class="stat-value" id="totalXp">—</div>
-                    <div class="stat-label">⚡ Total XP</div>
-                </div>
-                <div class="stat-card stat-card-battles">
-                    <div class="stat-value" id="totalBattles">—</div>
-                    <div class="stat-label">⚔️ Battles Played</div>
-                </div>
-                <div class="stat-card stat-card-record">
-                    <div class="stat-value" id="winLossRecord"><span id="winsVal">0</span>W / <span id="lossesVal">0</span>L</div>
-                    <div class="stat-label">🎖️ W / L Record</div>
-                </div>
-                <div class="stat-card stat-card-winrate">
-                    <div class="stat-value" id="winRateVal">—%</div>
-                    <div class="stat-label">🎯 Win Rate</div>
-                </div>
-            </div>
-
-            <!-- Player Progression Section -->
-            <div class="progression-section card card-glow" id="progressionSection">
-                <div class="progression-header">
-                    <div class="progression-title-wrap">
-                        <div class="level-badge" id="levelBadge">LVL <span id="levelBadgeNum">1</span></div>
-                        <div>
-                            <h3 class="progression-title">Player Progression</h3>
-                            <p class="progression-subtitle" id="progressionSubtitle">Earn XP by solving challenges and winning arena battles</p>
-                        </div>
+            <!-- Notifications (wired by existing auth.js) -->
+            <div class="notification-wrap" id="friendNotificationWrap">
+                <button class="notification-bell" id="friendNotificationBell" aria-label="Notifications">&#128276;
+                    <span class="notification-badge hidden" id="friendNotificationBadge">0</span>
+                </button>
+                <div class="notification-dropdown" id="friendNotificationDropdown">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <button class="icon-logout-btn" id="closeNotifBtn" style="width:28px;height:28px;font-size:0.8rem;">&#10005;</button>
                     </div>
-                    <div class="xp-counter-wrap">
-                        <span class="xp-current" id="currentLevelXp">0 XP</span>
-                        <span class="xp-divider">/</span>
-                        <span class="xp-target" id="nextLevelXp">250 XP</span>
-                        <span class="xp-needed-tag" id="xpNeededTag">(250 XP to Next Level)</span>
+                    <div class="notification-tabs">
+                        <button class="notification-tab active" id="notifTabAlerts"  data-tab="alerts">&#128226; Alerts</button>
+                        <button class="notification-tab"        id="notifTabFriends" data-tab="friends">&#128101; Requests</button>
+                    </div>
+                    <div id="notifContentAlerts"  class="notification-list"></div>
+                    <div id="notifContentFriends" class="notification-list" style="display:none;"></div>
+                    <div class="notification-footer" id="notifMarkReadWrap" style="display:none;">
+                        <button id="markAllReadBtn" class="clear-all-btn">&#10003; Mark All as Read</button>
                     </div>
                 </div>
-                <div class="progression-bar-container">
-                    <div class="progression-bar-fill" id="progressionBarFill" style="width: 0%;"></div>
+            </div>
+
+            <a href="profile.html" class="profile-chip lh-profile">
+                <span class="profile-avatar" id="headerAvatar">?</span>
+                <span id="headerUsername">Player</span>
+            </a>
+            <button onclick="api.logout()" class="icon-logout-btn" aria-label="Logout" title="Logout">&#9211;</button>
+        </div>
+    </header>
+
+    <!-- LOBBY BODY (3-column layout) -->
+    <main class="lobby-body">
+
+        <!-- Ambient FX -->
+        <div class="lobby-grid-overlay"></div>
+        <div class="lobby-bloom lobby-bloom-orange"></div>
+        <div class="lobby-bloom lobby-bloom-blue"></div>
+        <div class="lobby-bloom lobby-bloom-purple"></div>
+
+        <!-- ═══ LEFT PANEL ═══ -->
+        <aside class="lobby-left">
+
+            <!-- Daily Check-in -->
+            <div class="lp-card checkin-card" id="checkInCard">
+                <div class="lightning-container" id="lightningContainer"></div>
+                <div class="lp-card-header">
+                    <span class="lp-card-icon">&#129689;</span>
+                    <span class="lp-card-title">Daily Check-in</span>
+                </div>
+                <p class="lp-card-desc" id="checkInStatus">Claim your daily 30 coins reward!</p>
+                <div class="checkin-controls">
+                    <button id="claimBtn" class="btn btn-primary btn-shimmer lp-claim-btn">Claim 30 Coins</button>
+                    <div id="checkInTimer" class="timer-display hidden">Next claim in: <span>00:00:00</span></div>
                 </div>
             </div>
 
-            <!-- Dashboard Actions (Daily Check-in, Weekly Events, Start a Battle) -->
-            <div class="dashboard-actions">
-                <div class="card card-glow action-card checkin-card" id="checkInCard">
-                    <!-- Lightning Animation Layers -->
-                    <div class="lightning-container" id="lightningContainer"></div>
-                    
-                    <span class="action-icon">🪙</span>
-                    <h3>Daily Check-in</h3>
-                    <p id="checkInStatus">Claim your daily 30 coins reward!</p>
-                    <div class="checkin-controls">
-                        <button id="claimBtn" class="btn btn-primary btn-lg btn-shimmer">Claim 30 Coins</button>
-                        <div id="checkInTimer" class="timer-display hidden">Next claim in: <span>00:00:00</span></div>
+            <!-- XP Progression -->
+            <div class="lp-card lp-progression" id="progressionSection">
+                <div class="lp-card-header">
+                    <span class="lp-card-icon">&#11088;</span>
+                    <span class="lp-card-title">Progression</span>
+                    <span class="level-badge" id="levelBadge">LVL&nbsp;<span id="levelBadgeNum">1</span></span>
+                </div>
+                <div class="xp-counter-wrap lp-xp-counter">
+                    <span class="xp-current" id="currentLevelXp">0 XP</span>
+                    <span class="xp-divider">/</span>
+                    <span class="xp-target" id="nextLevelXp">250 XP</span>
+                </div>
+                <div class="progression-bar-container" style="margin-top:0.75rem;">
+                    <div class="progression-bar-fill" id="progressionBarFill" style="width:0%"></div>
+                </div>
+                <p class="lp-xp-needed" id="xpNeededTag">250 XP to Next Level</p>
+            </div>
+
+            <!-- Daily Missions -->
+            <div class="lp-card lp-missions" id="dailyMissionsSection">
+                <div class="lp-card-header">
+                    <span class="lp-card-icon">&#127919;</span>
+                    <span class="lp-card-title">Daily Missions</span>
+                </div>
+                <div class="lp-mission-list" id="missionsGrid">
+                    <div class="lp-mission-item" id="missionCheckIn">
+                        <div class="lp-mission-row">
+                            <span class="lp-mission-name">&#129689; Daily Check-in</span>
+                            <span class="mission-badge" id="mBadgeCheckIn">Pending</span>
+                        </div>
+                        <div class="mission-progress-bar"><div class="mission-fill" id="mFillCheckIn" style="width:0%"></div></div>
+                        <span class="mission-progress-text" id="mTextCheckIn">0/1</span>
+                    </div>
+                    <div class="lp-mission-item" id="missionBattle">
+                        <div class="lp-mission-row">
+                            <span class="lp-mission-name">&#9876; Arena Contender</span>
+                            <span class="mission-badge" id="mBadgeBattle">Pending</span>
+                        </div>
+                        <div class="mission-progress-bar"><div class="mission-fill" id="mFillBattle" style="width:0%"></div></div>
+                        <span class="mission-progress-text" id="mTextBattle">0/1</span>
+                    </div>
+                    <div class="lp-mission-item" id="missionProblem">
+                        <div class="lp-mission-row">
+                            <span class="lp-mission-name">&#128187; Algorithm Solver</span>
+                            <span class="mission-badge" id="mBadgeProblem">Pending</span>
+                        </div>
+                        <div class="mission-progress-bar"><div class="mission-fill" id="mFillProblem" style="width:0%"></div></div>
+                        <span class="mission-progress-text" id="mTextProblem">0/1</span>
+                    </div>
+                    <div class="lp-mission-item" id="missionSquad">
+                        <div class="lp-mission-row">
+                            <span class="lp-mission-name">&#128101; Squad Network</span>
+                            <span class="mission-badge" id="mBadgeSquad">Pending</span>
+                        </div>
+                        <div class="mission-progress-bar"><div class="mission-fill" id="mFillSquad" style="width:0%"></div></div>
+                        <span class="mission-progress-text" id="mTextSquad">0/1</span>
                     </div>
                 </div>
-
-                <a href="events.html" class="card card-glow action-card" id="weeklyEventsCard"
-                    style="border-color:var(--accent); background:rgba(255,107,0,0.05);">
-                    <span class="action-icon">🔥</span>
-                    <h3 style="color:var(--accent)" id="weeklyEventsTitle">Weekly Events</h3>
-                    <p id="weeklyEventsDesc">Join live bidding to secure your spot
-                        in the weekly coding championship.</p>
-                    <div id="weeklyEventsExtra" class="event-dynamic-extra hidden"></div>
-                </a>
-                <a href="battle-mode.html" class="card card-glow action-card action-card-battle">
-                    <span class="action-icon">⚔️</span>
-                    <h3>Start a Battle</h3>
-                    <p>Challenge another coder to a real-time
-                        1v1 coding duel.</p>
-                </a>
             </div>
 
-            <!-- Quick Battle Arena Section -->
-            <div class="section-container" id="quickBattleSection">
-                <div class="section-header">
-                    <span class="section-badge">RAPID DEPLOYMENT</span>
-                    <h2>⚔️ Quick Battle Arena</h2>
-                    <p class="section-desc">Select your combat protocol and deploy into the battle arena</p>
+        </aside>
+
+        <!-- ═══ CENTER COLUMN ═══ -->
+        <section class="lobby-center">
+
+            <!-- Player Hero Card -->
+            <div class="hero-player-card">
+                <div class="hero-player-bg-glow"></div>
+                <div class="hero-player-avatar-wrap">
+                    <div class="hero-player-avatar" id="heroAvatar">?</div>
+                    <div class="hero-player-ring hero-ring-1"></div>
+                    <div class="hero-player-ring hero-ring-2"></div>
+                    <div class="hero-level-pip" id="heroLevelPip">
+                        <span id="heroLevel">1</span>
+                    </div>
                 </div>
-
-                <div class="quick-battle-grid">
-                    <!-- 1v1 Battle -->
-                    <a href="battle.html" class="quick-battle-card group">
-                        <div class="qb-icon-box">⚔️</div>
-                        <div class="qb-content">
-                            <div class="qb-badge-row">
-                                <span class="qb-badge qb-badge-orange">Ranked Duel</span>
-                                <span class="qb-fee">15 - 30 🪙</span>
-                            </div>
-                            <h3>1 vs 1 Battle</h3>
-                            <p>Head-to-head coding clash with instant matchmaking. Victor claims 2x entry fee.</p>
-                            <div class="qb-footer">
-                                <span class="qb-cta">Launch 1v1 Duel →</span>
-                            </div>
+                <div class="hero-player-info">
+                    <h1 class="hero-player-name" id="heroUsername">Player</h1>
+                    <p class="hero-player-rank">Rank&nbsp;<span id="heroRank">#&#8212;</span>&nbsp;&middot;&nbsp;<span id="heroTotalPlayers">&#8212;</span> players</p>
+                    <div class="hero-player-stats-row">
+                        <div class="hero-mini-stat">
+                            <span class="hms-val" id="heroWins">0</span>
+                            <span class="hms-label">Wins</span>
                         </div>
-                    </a>
-
-                    <!-- 2v2 Team Battle -->
-                    <a href="battle.html?mode=2v2" class="quick-battle-card group">
-                        <div class="qb-icon-box">👥</div>
-                        <div class="qb-content">
-                            <div class="qb-badge-row">
-                                <span class="qb-badge qb-badge-purple">Team Duo</span>
-                                <span class="qb-fee">Co-op Arena</span>
-                            </div>
-                            <h3>2 vs 2 Team Battle</h3>
-                            <p>Form a squad with a friend, sync your algorithms, and outcode the rival duo.</p>
-                            <div class="qb-footer">
-                                <span class="qb-cta">Assemble Duo →</span>
-                            </div>
+                        <div class="hms-divider"></div>
+                        <div class="hero-mini-stat">
+                            <span class="hms-val" id="heroLosses">0</span>
+                            <span class="hms-label">Losses</span>
                         </div>
-                    </a>
-
-                    <!-- Custom Battle -->
-                    <a href="battle-mode.html" class="quick-battle-card group">
-                        <div class="qb-icon-box">🎯</div>
-                        <div class="qb-content">
-                            <div class="qb-badge-row">
-                                <span class="qb-badge qb-badge-blue">Private Match</span>
-                                <span class="qb-fee">Custom Lobby</span>
-                            </div>
-                            <h3>Custom Battle</h3>
-                            <p>Host private duel rooms, challenge squad mates, or select custom battle rules.</p>
-                            <div class="qb-footer">
-                                <span class="qb-cta">Open Custom Lobby →</span>
-                            </div>
+                        <div class="hms-divider"></div>
+                        <div class="hero-mini-stat">
+                            <span class="hms-val hms-orange" id="heroWinRate">0%</span>
+                            <span class="hms-label">Win Rate</span>
                         </div>
-                    </a>
-
-                    <!-- Error Battle -->
-                    <a href="battle.html?mode=error" class="quick-battle-card group">
-                        <div class="qb-icon-box">🐛</div>
-                        <div class="qb-content">
-                            <div class="qb-badge-row">
-                                <span class="qb-badge qb-badge-emerald">Bug Hunt</span>
-                                <span class="qb-fee">Rapid Debug</span>
-                            </div>
-                            <h3>Error Battle</h3>
-                            <p>Detect, diagnose, and fix intentional bugs in broken code against the clock.</p>
-                            <div class="qb-footer">
-                                <span class="qb-cta">Start Debug Race →</span>
-                            </div>
+                        <div class="hms-divider"></div>
+                        <div class="hero-mini-stat">
+                            <span class="hms-val hms-gold" id="heroCoins">&#8212;</span>
+                            <span class="hms-label">&#129689; Coins</span>
                         </div>
-                    </a>
+                    </div>
                 </div>
             </div>
 
-            <!-- Recent Battles Section -->
-            <div class="section-container" id="recentBattlesSection">
-                <div class="section-header flex-between">
+            <!-- Main Arena CTA -->
+            <div class="arena-cta-card" id="arenaCta">
+                <div class="arena-cta-pulse"></div>
+                <div class="arena-cta-content">
+                    <div class="arena-cta-icon">&#9876;</div>
+                    <div class="arena-cta-text">
+                        <h2 class="arena-cta-heading">Enter the Arena</h2>
+                        <p class="arena-cta-sub">Choose your battle mode and prove your skill</p>
+                    </div>
+                    <a href="battle-mode.html" class="btn btn-primary btn-lg btn-shimmer arena-cta-btn" id="enterArenaBtn">
+                        Play Now &#8594;
+                    </a>
+                </div>
+
+                <!-- Quick battle mode strip -->
+                <div class="battle-mode-strip" id="battleModeStrip">
+                    <a href="battle.html" class="bms-card" id="bms-1v1">
+                        <div class="bms-icon">&#9876;</div>
+                        <div class="bms-info">
+                            <span class="bms-title">1v1 Duel</span>
+                            <span class="bms-sub qb-badge qb-badge-orange">Ranked</span>
+                        </div>
+                        <span class="bms-fee">15-30 &#129689;</span>
+                    </a>
+                    <a href="battle.html?mode=2v2" class="bms-card" id="bms-2v2">
+                        <div class="bms-icon">&#128101;</div>
+                        <div class="bms-info">
+                            <span class="bms-title">2v2 Team</span>
+                            <span class="bms-sub qb-badge qb-badge-purple">Co-op</span>
+                        </div>
+                        <span class="bms-fee">Free</span>
+                    </a>
+                    <a href="battle-mode.html" class="bms-card" id="bms-custom">
+                        <div class="bms-icon">&#127919;</div>
+                        <div class="bms-info">
+                            <span class="bms-title">Custom</span>
+                            <span class="bms-sub qb-badge qb-badge-blue">Private</span>
+                        </div>
+                        <span class="bms-fee">Custom</span>
+                    </a>
+                    <a href="battle.html?mode=error" class="bms-card" id="bms-error">
+                        <div class="bms-icon">&#128027;</div>
+                        <div class="bms-info">
+                            <span class="bms-title">Error Hunt</span>
+                            <span class="bms-sub qb-badge qb-badge-emerald">Debug</span>
+                        </div>
+                        <span class="bms-fee">Debug</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Battles -->
+            <div class="center-section-card" id="recentBattlesSection">
+                <div class="csc-header">
                     <div>
-                        <span class="section-badge">COMBAT TELEMETRY</span>
-                        <h2>⚔️ Recent Battles</h2>
-                        <p class="section-desc">Your latest 5 arena combat logs</p>
+                        <span class="section-badge">COMBAT HISTORY</span>
+                        <h3 class="csc-title">&#9876; Recent Battles</h3>
                     </div>
-                    <a href="leaderboard.html" class="btn btn-secondary btn-sm" id="viewAllBattlesBtn">View Leaderboard & Records →</a>
+                    <a href="leaderboard.html" class="btn btn-secondary btn-sm">Leaderboard &#8594;</a>
                 </div>
-
                 <div class="recent-battles-list" id="recentBattlesList">
                     <div class="empty-battles-state card">
-                        <div class="empty-icon">🛡️</div>
+                        <div class="empty-icon">&#128737;</div>
                         <h4>No Battles Fought Yet</h4>
-                        <p>Deploy into the 1v1 or 2v2 Arena to forge your combat record and earn XP!</p>
-                        <a href="battle.html" class="btn btn-primary btn-sm mt-3">Start First Battle</a>
+                        <p>Deploy into the Arena to forge your combat record!</p>
+                        <a href="battle.html" class="btn btn-primary btn-sm" style="margin-top:1rem;">Start First Battle</a>
                     </div>
                 </div>
             </div>
 
-            <!-- Daily Missions & Milestones Section -->
-            <div class="section-container" id="dailyMissionsSection">
-                <div class="section-header">
-                    <span class="section-badge">DAILY OPS</span>
-                    <h2>🎯 Daily Missions & Milestones</h2>
-                    <p class="section-desc">Complete daily tasks to maximize coin balance and XP progression</p>
+        </section>
+
+        <!-- ═══ RIGHT PANEL ═══ -->
+        <aside class="lobby-right">
+
+            <!-- Player Stats Grid -->
+            <div class="rp-card rp-stats">
+                <div class="lp-card-header">
+                    <span class="lp-card-icon">&#128202;</span>
+                    <span class="lp-card-title">Stats</span>
                 </div>
-
-                <div class="missions-grid" id="missionsGrid">
-                    <!-- Mission 1: Check-in -->
-                    <div class="mission-card card card-glow" id="missionCheckIn">
-                        <div class="mission-icon">🪙</div>
-                        <div class="mission-details">
-                            <div class="mission-top">
-                                <h4>Daily Check-in</h4>
-                                <span class="mission-reward">+30 Coins</span>
-                            </div>
-                            <p class="mission-desc">Claim your routine 12-hour reward chest.</p>
-                            <div class="mission-progress-bar">
-                                <div class="mission-fill" id="mFillCheckIn" style="width: 0%;"></div>
-                            </div>
-                            <div class="mission-status-row">
-                                <span class="mission-progress-text" id="mTextCheckIn">0/1</span>
-                                <span class="mission-badge" id="mBadgeCheckIn">Pending</span>
-                            </div>
-                        </div>
+                <div class="rp-stats-grid" id="statsGrid">
+                    <div class="rp-stat stat-card-coins">
+                        <div class="rp-stat-val" id="totalCoins">&#8212;</div>
+                        <div class="rp-stat-label">&#129689; Coins</div>
                     </div>
-
-                    <!-- Mission 2: Battle -->
-                    <div class="mission-card card card-glow" id="missionBattle">
-                        <div class="mission-icon">⚔️</div>
-                        <div class="mission-details">
-                            <div class="mission-top">
-                                <h4>Arena Contender</h4>
-                                <span class="mission-reward">+50 XP</span>
-                            </div>
-                            <p class="mission-desc">Participate in at least 1 coding battle.</p>
-                            <div class="mission-progress-bar">
-                                <div class="mission-fill" id="mFillBattle" style="width: 0%;"></div>
-                            </div>
-                            <div class="mission-status-row">
-                                <span class="mission-progress-text" id="mTextBattle">0/1</span>
-                                <span class="mission-badge" id="mBadgeBattle">Pending</span>
-                            </div>
-                        </div>
+                    <div class="rp-stat stat-card-rank">
+                        <div class="rp-stat-val" id="userRank">&#8212;</div>
+                        <div class="rp-stat-label">&#127942; Rank</div>
                     </div>
-
-                    <!-- Mission 3: Problem -->
-                    <div class="mission-card card card-glow" id="missionProblem">
-                        <div class="mission-icon">💻</div>
-                        <div class="mission-details">
-                            <div class="mission-top">
-                                <h4>Algorithm Solver</h4>
-                                <span class="mission-reward">+100 XP</span>
-                            </div>
-                            <p class="mission-desc">Solve code problems in the practice catalog.</p>
-                            <div class="mission-progress-bar">
-                                <div class="mission-fill" id="mFillProblem" style="width: 0%;"></div>
-                            </div>
-                            <div class="mission-status-row">
-                                <span class="mission-progress-text" id="mTextProblem">0/1</span>
-                                <span class="mission-badge" id="mBadgeProblem">Pending</span>
-                            </div>
-                        </div>
+                    <div class="rp-stat stat-card-level">
+                        <div class="rp-stat-val" id="playerLevel">&#8212;</div>
+                        <div class="rp-stat-label">&#11088; Level</div>
                     </div>
-
-                    <!-- Mission 4: Squad -->
-                    <div class="mission-card card card-glow" id="missionSquad">
-                        <div class="mission-icon">👥</div>
-                        <div class="mission-details">
-                            <div class="mission-top">
-                                <h4>Squad Network</h4>
-                                <span class="mission-reward">+20 XP</span>
-                            </div>
-                            <p class="mission-desc">Add a fellow programmer to your squad list.</p>
-                            <div class="mission-progress-bar">
-                                <div class="mission-fill" id="mFillSquad" style="width: 0%;"></div>
-                            </div>
-                            <div class="mission-status-row">
-                                <span class="mission-progress-text" id="mTextSquad">0/1</span>
-                                <span class="mission-badge" id="mBadgeSquad">Pending</span>
-                            </div>
-                        </div>
+                    <div class="rp-stat stat-card-xp">
+                        <div class="rp-stat-val" id="totalXp">&#8212;</div>
+                        <div class="rp-stat-label">&#9889; XP</div>
+                    </div>
+                    <div class="rp-stat stat-card-battles">
+                        <div class="rp-stat-val" id="totalBattles">&#8212;</div>
+                        <div class="rp-stat-label">&#9876; Battles</div>
+                    </div>
+                    <div class="rp-stat stat-card-winrate">
+                        <div class="rp-stat-val" id="winRateVal">&#8212;%</div>
+                        <div class="rp-stat-label">&#127919; Win Rate</div>
                     </div>
                 </div>
+                <!-- Kept for JS compatibility -->
+                <span id="winsVal"   style="display:none">0</span>
+                <span id="lossesVal" style="display:none">0</span>
             </div>
 
+            <!-- Weekly Events -->
+            <a href="events.html" class="rp-card rp-events rp-link-card" id="weeklyEventsCard"
+               style="border-color:rgba(255,107,0,0.25); background:rgba(255,107,0,0.04);">
+                <div class="lp-card-header">
+                    <span class="lp-card-icon">&#128293;</span>
+                    <span class="lp-card-title" id="weeklyEventsTitle" style="color:var(--accent)">Weekly Events</span>
+                </div>
+                <p class="lp-card-desc" id="weeklyEventsDesc">Join live bidding to secure your spot in the weekly coding championship.</p>
+                <div id="weeklyEventsExtra" class="event-dynamic-extra hidden"></div>
+                <span class="rp-link-arrow">View Events &#8594;</span>
+            </a>
 
-        </div>
-        
-        <!-- Coin Animation Layer -->
-        <div id="coinContainer" class="coin-container"></div>
+            <!-- Squad (Friends) -->
+            <a href="friends.html" class="rp-card rp-friends rp-link-card">
+                <div class="lp-card-header">
+                    <span class="lp-card-icon">&#128101;</span>
+                    <span class="lp-card-title">Squad</span>
+                    <span class="rp-friends-count" id="friendsCountBadge">&#8212;</span>
+                </div>
+                <p class="lp-card-desc">Invite friends, form teams and receive battle invites.</p>
+                <span class="rp-link-arrow">Manage Squad &#8594;</span>
+            </a>
+
+            <!-- Leaderboard Snippet -->
+            <a href="leaderboard.html" class="rp-card rp-leaderboard rp-link-card">
+                <div class="lp-card-header">
+                    <span class="lp-card-icon">&#127942;</span>
+                    <span class="lp-card-title">Leaderboard</span>
+                </div>
+                <p class="lp-card-desc">
+                    Your rank:&nbsp;<strong id="leaderboardRankSnippet">&#8212;</strong>
+                    &nbsp;of&nbsp;<span id="leaderboardTotalSnippet">&#8212;</span> players.
+                </p>
+                <span class="rp-link-arrow">View Rankings &#8594;</span>
+            </a>
+
+        </aside>
+
     </main>
+
+    <!-- BOTTOM GAME MENU -->
+    <nav class="lobby-bottom-nav" id="lobbyBottomNav" aria-label="Game navigation">
+        <a href="dashboard.html"   class="lbn-item active" aria-label="Lobby">
+            <span class="lbn-icon">&#127968;</span>
+            <span class="lbn-label">Lobby</span>
+        </a>
+        <a href="battle-mode.html" class="lbn-item" aria-label="Battle">
+            <span class="lbn-icon">&#9876;</span>
+            <span class="lbn-label">Battle</span>
+        </a>
+        <a href="events.html"      class="lbn-item" aria-label="Events">
+            <span class="lbn-icon">&#128293;</span>
+            <span class="lbn-label">Events</span>
+        </a>
+        <a href="leaderboard.html" class="lbn-item" aria-label="Leaderboard">
+            <span class="lbn-icon">&#127942;</span>
+            <span class="lbn-label">Board</span>
+        </a>
+        <a href="friends.html"     class="lbn-item" aria-label="Squad">
+            <span class="lbn-icon">&#128101;</span>
+            <span class="lbn-label">Squad</span>
+        </a>
+        <a href="profile.html"     class="lbn-item" aria-label="Profile">
+            <span class="lbn-icon">&#128100;</span>
+            <span class="lbn-label">Profile</span>
+        </a>
+    </nav>
+
+    <!-- Coin animation layer (original) -->
+    <div id="coinContainer" class="coin-container"></div>
 
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
